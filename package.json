@@ -1,0 +1,22 @@
+{
+  "name": "fllscoreclient.js",
+  "version": "0.1.0",
+  "description": "An implementation of the FLL Score Client Protocol.",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/Pr1sM/fllscoreclientjs.git"
+  },
+  "author": "Srinivas Dhanwada",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/Pr1sM/fllscoreclientjs/issues"
+  },
+  "homepage": "https://github.com/Pr1sM/fllscoreclientjs#readme",
+  "devDependencies": {
+    "typescript": "^2.6.2"
+  }
+}
