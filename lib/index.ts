@@ -74,6 +74,8 @@ export class Client implements IClient {
             this.socket.once('data', data =>  {
                 if(welcomeRegEx.test(data.toString())) {
                     resolve('Connected');
+                } else {
+                    reject(new Error('Unexpected Message returned: ' + data));
                 }
             });
 
@@ -93,7 +95,24 @@ export class Client implements IClient {
                 reject(new Error('Not Connected'))
             }
 
-            reject(new Error('Not yet implemented!'))
+            this.socket.once('error', err => {
+                console.log('[INTERNAL]Error during send');
+                this.close().then(() => {
+                    reject(err);
+                }).catch(() => {
+                    reject(err);
+                });
+            });
+
+            this.socket.once('data', data => {
+                if(echoRegEx.test(data.toString())) {
+                    resolve('Echo Received');
+                } else {
+                    reject(new Error('Unexpected Message returned: ' + data));
+                }
+            });
+
+            this.socket.write('Ping:\r\n');
         });
     }
 
