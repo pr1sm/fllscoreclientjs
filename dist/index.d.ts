@@ -9,10 +9,12 @@ export declare enum ConnectionStatus {
 export interface IClient {
     connect(): Promise<String>;
     sendPing(): Promise<String>;
+    sendLastUpdate(): Promise<Date>;
     close(): Promise<String>;
     host: string;
     name: string;
     port: number;
+    lastUpdate?: Date;
     status: ConnectionStatus;
     socket: Socket;
 }
@@ -20,10 +22,12 @@ export declare class Client implements IClient {
     host: string;
     port: number;
     name: string;
+    lastUpdate?: Date;
     status: ConnectionStatus;
     socket: Socket;
     constructor(host?: string, port?: number, name?: string);
     connect(): Promise<String>;
     sendPing(): Promise<String>;
+    sendLastUpdate(): Promise<Date>;
     close(): Promise<String>;
 }

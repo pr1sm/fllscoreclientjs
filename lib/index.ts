@@ -20,6 +20,8 @@ export interface IClient {
 
     sendPing(): Promise<String>;
 
+    sendLastUpdate(): Promise<Date>;
+
     close() : Promise<String>;
 
     host: string;
@@ -27,6 +29,8 @@ export interface IClient {
     name: string;
 
     port: number;
+
+    lastUpdate?: Date;
 
     status: ConnectionStatus;
 
@@ -38,6 +42,7 @@ export class Client implements IClient {
     host: string = 'localhost';
     port: number = 25002;
     name: string = 'FLLScoreClient';
+    lastUpdate?: Date;
     status: ConnectionStatus;
     socket: Socket;
 
@@ -45,6 +50,7 @@ export class Client implements IClient {
         this.host = host;
         this.port = port;
         this.name = name;
+        this.lastUpdate = undefined;
         this.status = ConnectionStatus.Disconnected;
         this.socket = new Socket();
 
@@ -116,11 +122,41 @@ export class Client implements IClient {
         });
     }
 
+    public sendLastUpdate(): Promise<Date> {
+        return new Promise<Date>((resolve, reject) => {
+            if(this.status != ConnectionStatus.Connected) {
+                reject(new Error('Not Connected'));
+            }
+
+            this.socket.once('error', err => {
+                reject(err);
+            });
+
+            this.socket.once('data', data => {
+                if(lastUpdateRegEx.test(data.toString())) {
+                    let raw = data.toString().trim();
+                    let response = raw.substring(raw.indexOf(':')+1);
+                    console.log('[Internal]Received: ' + response);
+                    this.lastUpdate = new Date(response);
+                    resolve(this.lastUpdate);
+                } else {
+                    reject(new Error('Unexpected Message returned: ' + data));
+                }
+            });
+
+            this.socket.write('Send Last Update:\r\n');
+        });
+    }
+
     public close(): Promise<String> {
         return new Promise<String>((resolve, reject) => {
             if(this.status != ConnectionStatus.Connected) {
                 reject(new Error('Not Connected'));
             }
+
+            this.socket.once('error', err => {
+               reject(err);
+            });
 
             this.socket.once('close', had_error => {
                if(had_error) {

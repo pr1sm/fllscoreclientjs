@@ -22,6 +22,7 @@ class Client {
         this.host = host;
         this.port = port;
         this.name = name;
+        this.lastUpdate = undefined;
         this.status = ConnectionStatus.Disconnected;
         this.socket = new net_1.Socket();
         this.socket.on('data', data => {
@@ -85,11 +86,37 @@ class Client {
             this.socket.write('Ping:\r\n');
         });
     }
+    sendLastUpdate() {
+        return new Promise((resolve, reject) => {
+            if (this.status != ConnectionStatus.Connected) {
+                reject(new Error('Not Connected'));
+            }
+            this.socket.once('error', err => {
+                reject(err);
+            });
+            this.socket.once('data', data => {
+                if (lastUpdateRegEx.test(data.toString())) {
+                    let raw = data.toString().trim();
+                    let response = raw.substring(raw.indexOf(':') + 1);
+                    console.log('[Internal]Received: ' + response);
+                    this.lastUpdate = new Date(response);
+                    resolve(this.lastUpdate);
+                }
+                else {
+                    reject(new Error('Unexpected Message returned: ' + data));
+                }
+            });
+            this.socket.write('Send Last Update:\r\n');
+        });
+    }
     close() {
         return new Promise((resolve, reject) => {
             if (this.status != ConnectionStatus.Connected) {
                 reject(new Error('Not Connected'));
             }
+            this.socket.once('error', err => {
+                reject(err);
+            });
             this.socket.once('close', had_error => {
                 if (had_error) {
                     reject(new Error('Closed with error'));
