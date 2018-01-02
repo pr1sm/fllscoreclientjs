@@ -1,6 +1,6 @@
 var fllScoreClient = require('../dist/index');
 
-var client = new fllScoreClient.Client('localhost', 8100);
+var client = fllScoreClient.createClient('localhost', 8100);
 
 client.connect().then(function(res) {
     console.log(res);
