@@ -9,3 +9,4 @@ var FLLScoreClientConstants;
     FLLScoreClientConstants.SCORE_DONE = /^Score Done:(\r\n)*$/;
     FLLScoreClientConstants.LAST_UPDATE = /^Last Update:.+(\r\n)*$/;
 })(FLLScoreClientConstants = exports.FLLScoreClientConstants || (exports.FLLScoreClientConstants = {}));
+//# sourceMappingURL=contants.js.map
