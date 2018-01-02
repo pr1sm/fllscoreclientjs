@@ -1,12 +1,12 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 const net_1 = require("net");
-const welcomeRegEx = new RegExp('^Welcome:[0-9]+\r\n$');
-const echoRegEx = new RegExp('^Echo:\r\n$');
-const scoreHeaderRegEx = new RegExp('^Score Header:[a-zA-Z0-9\/:]+(\|[0-9]+){3}\r\n$');
-const scoreRegEx = new RegExp('^Score:[0-9]+\|.+(\|(-1|[0-9]+)){4}\r\n$');
-const scoreDoneRegEx = new RegExp('^Score Done:\r\n$');
-const lastUpdateRegEx = new RegExp('^Last Update:.+\r\n$');
+const welcomeRegEx = new RegExp('^(Welcome:){1}[0-9]+(\r\n)*$');
+const echoRegEx = new RegExp('^(Echo:){1}(\r\n)*$');
+const scoreHeaderRegEx = new RegExp('^(Score Header:){1}[a-zA-Z0-9\/:]+(\|[0-9]+){3}(\r\n)*$');
+const scoreRegEx = new RegExp('^(Score:){1}[0-9]+\|.+(\|(-1|[0-9]+)){4}(\r\n)*$');
+const scoreDoneRegEx = new RegExp('^(Score Done:){1}(\r\n)*$');
+const lastUpdateRegEx = new RegExp('^(Last Update:){1}.+(\r\n)*$');
 var ConnectionStatus;
 (function (ConnectionStatus) {
     ConnectionStatus[ConnectionStatus["Unknown"] = 0] = "Unknown";
@@ -23,6 +23,7 @@ class Client {
         this.port = port;
         this.name = name;
         this.lastUpdate = undefined;
+        this.scoreInfo = undefined;
         this.status = ConnectionStatus.Disconnected;
         this.socket = new net_1.Socket();
         this.socket.on('data', data => {
@@ -107,6 +108,66 @@ class Client {
                 }
             });
             this.socket.write('Send Last Update:\r\n');
+        });
+    }
+    sendScore() {
+        return new Promise((resolve, reject) => {
+            let intermediateData = '';
+            let teamInfo = [];
+            let scheduleInfo;
+            let sendScoreDataHandler = (data) => {
+                let raw = data.toString();
+                if (!raw.endsWith('\r\n')) {
+                    intermediateData += raw;
+                    return;
+                }
+                else {
+                    raw = intermediateData + raw;
+                    intermediateData = '';
+                }
+                let split = raw.trim().split('\r\n');
+                split.forEach(value => {
+                    console.log('[PREVIEW]' + value);
+                    if (scoreDoneRegEx.test(value)) {
+                        console.log('[INTERNAL][SCORE] Score Done');
+                        this.socket.removeListener('data', sendScoreDataHandler);
+                        this.scoreInfo = {
+                            scheduleInfo: scheduleInfo,
+                            teamInfo: teamInfo
+                        };
+                        resolve(this.scoreInfo);
+                    }
+                    else if (scoreHeaderRegEx.test(value)) {
+                        let content = value.substring(value.indexOf(':') + 1).split('|');
+                        scheduleInfo = {
+                            lastUpdate: new Date(content[0]),
+                            numberOfTeams: parseInt(content[1]),
+                            numberOfMatches: parseInt(content[2]),
+                            numberOfCompletedMatches: parseInt(content[3])
+                        };
+                    }
+                    else if (scoreRegEx.test(value)) {
+                        let content = value.substring(value.indexOf(':') + 1).split('|');
+                        teamInfo.push({
+                            number: parseInt(content[0]),
+                            name: content[1],
+                            highScore: parseInt(content[2]),
+                            scores: [parseInt(content[3]), parseInt(content[4]), parseInt(content[5])]
+                        });
+                    }
+                    else {
+                        console.log('[INTERNAL][SCORE] Unexpected command');
+                    }
+                });
+            };
+            if (this.status != ConnectionStatus.Connected) {
+                reject(new Error('Not Connected'));
+            }
+            this.socket.once('error', err => {
+                reject(err);
+            });
+            this.socket.on('data', sendScoreDataHandler);
+            this.socket.write('Send Score:\r\n');
         });
     }
     close() {

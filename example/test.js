@@ -11,6 +11,12 @@ client.connect().then(function(res) {
 }).then(function(res) {
     console.log(res.toString());
     console.log(client.lastUpdate.toISOString());
+    return client.sendScore();
+}).then(function(res) {
+    console.log(JSON.stringify(res));
+    return client.sendLastUpdate();
+}).then(function(res) {
+    console.log(res.toString());
     return client.close();
 }).then(function(res) {
     console.log(res);
