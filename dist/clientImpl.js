@@ -3,6 +3,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const net_1 = require("net");
 const contants_1 = require("./contants");
 const interface_1 = require("./interface");
+const timers_1 = require("timers");
 class ClientImpl {
     constructor(host = 'localhost', port = 25002, name = 'FLLScoreClient') {
         this.host = 'localhost';
@@ -15,11 +16,18 @@ class ClientImpl {
         this.scoreInfo = undefined;
         this.status = interface_1.FLLScoreClient.ConnectionStatus.Disconnected;
         this.socket = new net_1.Socket();
+        this.connTest = undefined;
+        this.watchdogInterval = 5;
         this.socket.on('data', data => {
-            console.log('[INTERNAL]Received: ' + data);
+            console.log('[INTERNAL]Received: ' + data.toString().trim());
         });
         this.socket.on('close', had_error => {
             this.status = interface_1.FLLScoreClient.ConnectionStatus.Disconnected;
+            if (this.connTest !== undefined) {
+                timers_1.clearInterval(this.connTest);
+            }
+            this.connTest = undefined;
+            this.watchdogInterval = 5;
             if (had_error) {
                 console.log('[INTERNAL]Connection Closed due to error: ');
             }
@@ -37,6 +45,9 @@ class ClientImpl {
             });
             this.socket.once('data', data => {
                 if (contants_1.FLLScoreClientConstants.WELCOME.test(data.toString())) {
+                    let raw = data.toString().trim();
+                    this.watchdogInterval = parseInt(raw.substring(raw.indexOf(':') + 1));
+                    this.resetConnectionTest();
                     resolve('Connected');
                 }
                 else {
@@ -58,12 +69,7 @@ class ClientImpl {
                 reject(new Error('Not Connected'));
             }
             this.socket.once('error', err => {
-                console.log('[INTERNAL]Error during send');
-                this.close().then(() => {
-                    reject(err);
-                }).catch(() => {
-                    reject(err);
-                });
+                reject(err);
             });
             this.socket.once('data', data => {
                 if (contants_1.FLLScoreClientConstants.ECHO.test(data.toString())) {
@@ -73,7 +79,9 @@ class ClientImpl {
                     reject(new Error('Unexpected Message returned: ' + data));
                 }
             });
-            this.socket.write('Ping:\r\n');
+            this.socket.write('Ping:\r\n', () => {
+                this.resetConnectionTest();
+            });
         });
     }
     sendLastUpdate() {
@@ -96,7 +104,9 @@ class ClientImpl {
                     reject(new Error('Unexpected Message returned: ' + data));
                 }
             });
-            this.socket.write('Send Last Update:\r\n');
+            this.socket.write('Send Last Update:\r\n', () => {
+                this.resetConnectionTest();
+            });
         });
     }
     sendScore() {
@@ -116,9 +126,7 @@ class ClientImpl {
                 }
                 let split = raw.trim().split('\r\n');
                 split.forEach(value => {
-                    console.log('[PREVIEW]' + value);
                     if (contants_1.FLLScoreClientConstants.SCORE_DONE.test(value)) {
-                        console.log('[INTERNAL][SCORE] Score Done');
                         this.socket.removeListener('data', sendScoreDataHandler);
                         this.scoreInfo = {
                             scheduleInfo: scheduleInfo,
@@ -156,7 +164,9 @@ class ClientImpl {
                 reject(err);
             });
             this.socket.on('data', sendScoreDataHandler);
-            this.socket.write('Send Score:\r\n');
+            this.socket.write('Send Score:\r\n', () => {
+                this.resetConnectionTest();
+            });
         });
     }
     close() {
@@ -177,6 +187,16 @@ class ClientImpl {
             });
             this.socket.end();
         });
+    }
+    resetConnectionTest() {
+        if (this.connTest !== undefined) {
+            timers_1.clearInterval(this.connTest);
+        }
+        this.connTest = setInterval(() => {
+            if (this.status === interface_1.FLLScoreClient.ConnectionStatus.Connected) {
+                this.socket.write('Ping:\r\n');
+            }
+        }, this.watchdogInterval * 1000);
     }
 }
 exports.ClientImpl = ClientImpl;

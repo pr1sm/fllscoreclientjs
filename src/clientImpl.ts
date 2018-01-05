@@ -1,6 +1,8 @@
 import {Socket} from "net";
 import {FLLScoreClientConstants} from "./contants";
 import {FLLScoreClient} from "./interface";
+import Timer = NodeJS.Timer;
+import {clearInterval} from "timers";
 
 export class ClientImpl implements FLLScoreClient.Client {
 
@@ -12,6 +14,9 @@ export class ClientImpl implements FLLScoreClient.Client {
     status: FLLScoreClient.ConnectionStatus;
     socket: Socket;
 
+    private watchdogInterval:number;
+    private connTest?:Timer;
+
     constructor(host: string = 'localhost', port: number = 25002, name: string = 'FLLScoreClient') {
         this.host = host;
         this.port = port;
@@ -20,13 +25,20 @@ export class ClientImpl implements FLLScoreClient.Client {
         this.scoreInfo = undefined;
         this.status = FLLScoreClient.ConnectionStatus.Disconnected;
         this.socket = new Socket();
+        this.connTest = undefined;
+        this.watchdogInterval = 5;
 
         this.socket.on('data', data => {
-            console.log('[INTERNAL]Received: ' + data);
+            console.log('[INTERNAL]Received: ' + data.toString().trim());
         });
 
         this.socket.on('close', had_error => {
             this.status = FLLScoreClient.ConnectionStatus.Disconnected;
+            if(this.connTest !== undefined) {
+                clearInterval(this.connTest);
+            }
+            this.connTest = undefined;
+            this.watchdogInterval = 5;
             if(had_error) {
                 console.log('[INTERNAL]Connection Closed due to error: ');
             } else {
@@ -46,6 +58,9 @@ export class ClientImpl implements FLLScoreClient.Client {
 
             this.socket.once('data', data =>  {
                 if(FLLScoreClientConstants.WELCOME.test(data.toString())) {
+                    let raw = data.toString().trim();
+                    this.watchdogInterval = parseInt(raw.substring(raw.indexOf(':')+1));
+                    this.resetConnectionTest();
                     resolve('Connected');
                 } else {
                     reject(new Error('Unexpected Message returned: ' + data));
@@ -80,7 +95,9 @@ export class ClientImpl implements FLLScoreClient.Client {
                 }
             });
 
-            this.socket.write('Ping:\r\n');
+            this.socket.write('Ping:\r\n', () => {
+                this.resetConnectionTest();
+            });
         });
     }
 
@@ -106,7 +123,9 @@ export class ClientImpl implements FLLScoreClient.Client {
                 }
             });
 
-            this.socket.write('Send Last Update:\r\n');
+            this.socket.write('Send Last Update:\r\n', () => {
+                this.resetConnectionTest();
+            });
         });
     }
 
@@ -169,7 +188,9 @@ export class ClientImpl implements FLLScoreClient.Client {
 
             this.socket.on('data', sendScoreDataHandler);
 
-            this.socket.write('Send Score:\r\n');
+            this.socket.write('Send Score:\r\n', () => {
+                this.resetConnectionTest();
+            });
         });
     }
 
@@ -193,5 +214,17 @@ export class ClientImpl implements FLLScoreClient.Client {
 
             this.socket.end();
         });
+    }
+
+    private resetConnectionTest(): void {
+        if(this.connTest !== undefined) {
+            clearInterval(this.connTest);
+        }
+
+        this.connTest = setInterval(() => {
+            if(this.status === FLLScoreClient.ConnectionStatus.Connected) {
+                this.socket.write('Ping:\r\n');
+            }
+        }, this.watchdogInterval * 1000);
     }
 }

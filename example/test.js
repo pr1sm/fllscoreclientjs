@@ -11,6 +11,10 @@ client.connect().then(function(res) {
 }).then(function(res) {
     console.log(res.toString());
     console.log(client.lastUpdate.toISOString());
+    return new Promise(function (resolve) {
+        setTimeout(resolve, 20000);
+    });
+}).then(function() {
     return client.sendScore();
 }).then(function(res) {
     console.log(JSON.stringify(res));
