@@ -69,12 +69,7 @@ export class ClientImpl implements FLLScoreClient.Client {
             }
 
             this.socket.once('error', err => {
-                console.log('[INTERNAL]Error during send');
-                this.close().then(() => {
-                    reject(err);
-                }).catch(() => {
-                    reject(err);
-                });
+                reject(err);
             });
 
             this.socket.once('data', data => {
@@ -135,9 +130,7 @@ export class ClientImpl implements FLLScoreClient.Client {
                 let split = raw.trim().split('\r\n');
 
                 split.forEach(value => {
-                    console.log('[PREVIEW]' + value);
                     if(FLLScoreClientConstants.SCORE_DONE.test(value)) {
-                        console.log('[INTERNAL][SCORE] Score Done');
                         this.socket.removeListener('data', sendScoreDataHandler);
                         this.scoreInfo = {
                             scheduleInfo: scheduleInfo,
