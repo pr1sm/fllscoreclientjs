@@ -2,11 +2,13 @@ import socket
 import threading
 import time
 
+WATCHDOG_INTERVAL = 5;
+
 class ClientHandlerThread(threading.Thread):
     def __init__(self, client_socket, client_addr):
         super(ClientHandlerThread, self).__init__()
         self._stop_event = threading.Event()
-        client_socket.settimeout(30)
+        client_socket.settimeout(WATCHDOG_INTERVAL)
         self._client_socket = client_socket
         self._client_addr = client_addr
         self._client_name = '---'
@@ -32,7 +34,7 @@ class ClientHandlerThread(threading.Thread):
             self._client_socket.close()
             return
 
-        self._client_socket.setblocking(0)
+        self._client_socket.settimeout(2 * WATCHDOG_INTERVAL)
         while not self._stop_event.is_set():
             try:
                 raw_request = self._client_socket.recv(1024)
@@ -46,7 +48,11 @@ class ClientHandlerThread(threading.Thread):
                     continue
                 
                 self.parse_command(request)
-        
+
+            except socket.timeout:
+                print '{} - {}: Timeout occurred, closing connection'.format(self._client_addr, self._client_name)
+                self._client_socket.close()
+                return
             except socket.error:
                 time.sleep(0.1)
 
@@ -61,7 +67,7 @@ class ClientHandlerThread(threading.Thread):
             if len(args[0]) > 0:
                 self._client_name = args[0].strip()
 
-            self._client_socket.send('Welcome:5\r\n')
+            self._client_socket.send('Welcome:{}\r\n'.format(WATCHDOG_INTERVAL))
 
         elif command == 'Ping':
             self._client_socket.send('Echo:\r\n')
