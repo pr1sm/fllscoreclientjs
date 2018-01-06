@@ -14,10 +14,11 @@ export class ClientImpl implements FLLScoreClient.Client {
     status: FLLScoreClient.ConnectionStatus;
     socket: Socket;
 
+    private useWatchdog:boolean;
     private watchdogInterval:number;
     private connTest?:Timer;
 
-    constructor(host: string = 'localhost', port: number = 25002, name: string = 'FLLScoreClient') {
+    constructor(host: string = 'localhost', port: number = 25002, name: string = 'FLLScoreClient', useWatchdog: boolean = true) {
         this.host = host;
         this.port = port;
         this.name = name;
@@ -25,25 +26,17 @@ export class ClientImpl implements FLLScoreClient.Client {
         this.scoreInfo = undefined;
         this.status = FLLScoreClient.ConnectionStatus.Disconnected;
         this.socket = new Socket();
+        this.useWatchdog = useWatchdog;
         this.connTest = undefined;
         this.watchdogInterval = 5;
 
-        this.socket.on('data', data => {
-            console.log('[INTERNAL]Received: ' + data.toString().trim());
-        });
-
-        this.socket.on('close', had_error => {
+        this.socket.on('close', () => {
             this.status = FLLScoreClient.ConnectionStatus.Disconnected;
             if(this.connTest !== undefined) {
                 clearInterval(this.connTest);
             }
             this.connTest = undefined;
             this.watchdogInterval = 5;
-            if(had_error) {
-                console.log('[INTERNAL]Connection Closed due to error: ');
-            } else {
-                console.log('[INTERNAL]Connection Closed');
-            }
         });
     }
 
@@ -63,6 +56,7 @@ export class ClientImpl implements FLLScoreClient.Client {
                     this.resetConnectionTest();
                     resolve('Connected');
                 } else {
+                    this.status = FLLScoreClient.ConnectionStatus.Disconnected;
                     reject(new Error('Unexpected Message returned: ' + data));
                 }
             });
@@ -115,7 +109,6 @@ export class ClientImpl implements FLLScoreClient.Client {
                 if(FLLScoreClientConstants.LAST_UPDATE.test(data.toString())) {
                     let raw = data.toString().trim();
                     let response = raw.substring(raw.indexOf(':')+1);
-                    console.log('[Internal]Received: ' + response);
                     this.lastUpdate = new Date(response);
                     resolve(this.lastUpdate);
                 } else {
@@ -173,7 +166,7 @@ export class ClientImpl implements FLLScoreClient.Client {
                             scores: [parseInt(content[3]), parseInt(content[4]), parseInt(content[5])]
                         });
                     } else {
-                        console.log('[INTERNAL][SCORE] Unexpected command');
+                        // TODO: Deal with invalid command
                     }
                 });
             };
@@ -219,6 +212,10 @@ export class ClientImpl implements FLLScoreClient.Client {
     private resetConnectionTest(): void {
         if(this.connTest !== undefined) {
             clearInterval(this.connTest);
+        }
+
+        if(!this.useWatchdog) {
+            return;
         }
 
         this.connTest = setInterval(() => {
