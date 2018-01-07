@@ -53,7 +53,8 @@
       "dist/**",
       "example/**",
       "test/**",
-      "node_modules/**"
+      "node_modules/**",
+      "webpack.config.js"
     ],
     "reporter": [
       "html"
