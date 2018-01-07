@@ -9,9 +9,10 @@ export declare class ClientImpl implements FLLScoreClient.Client {
     scoreInfo?: FLLScoreClient.ScoreInfo;
     status: FLLScoreClient.ConnectionStatus;
     socket: Socket;
+    private useWatchdog;
     private watchdogInterval;
     private connTest?;
-    constructor(host?: string, port?: number, name?: string);
+    constructor(host?: string, port?: number, name?: string, useWatchdog?: boolean);
     connect(): Promise<String>;
     sendPing(): Promise<String>;
     sendLastUpdate(): Promise<Date>;

@@ -1,11 +1,143 @@
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define("fllscoreclient", [], factory);
+	else if(typeof exports === 'object')
+		exports["fllscoreclient"] = factory();
+	else
+		root["fllscoreclient"] = factory();
+})(typeof self !== 'undefined' ? self : this, function() {
+return /******/ (function(modules) { // webpackBootstrap
+/******/ 	// The module cache
+/******/ 	var installedModules = {};
+/******/
+/******/ 	// The require function
+/******/ 	function __webpack_require__(moduleId) {
+/******/
+/******/ 		// Check if module is in cache
+/******/ 		if(installedModules[moduleId]) {
+/******/ 			return installedModules[moduleId].exports;
+/******/ 		}
+/******/ 		// Create a new module (and put it into the cache)
+/******/ 		var module = installedModules[moduleId] = {
+/******/ 			i: moduleId,
+/******/ 			l: false,
+/******/ 			exports: {}
+/******/ 		};
+/******/
+/******/ 		// Execute the module function
+/******/ 		modules[moduleId].call(module.exports, module, module.exports, __webpack_require__);
+/******/
+/******/ 		// Flag the module as loaded
+/******/ 		module.l = true;
+/******/
+/******/ 		// Return the exports of the module
+/******/ 		return module.exports;
+/******/ 	}
+/******/
+/******/
+/******/ 	// expose the modules object (__webpack_modules__)
+/******/ 	__webpack_require__.m = modules;
+/******/
+/******/ 	// expose the module cache
+/******/ 	__webpack_require__.c = installedModules;
+/******/
+/******/ 	// define getter function for harmony exports
+/******/ 	__webpack_require__.d = function(exports, name, getter) {
+/******/ 		if(!__webpack_require__.o(exports, name)) {
+/******/ 			Object.defineProperty(exports, name, {
+/******/ 				configurable: false,
+/******/ 				enumerable: true,
+/******/ 				get: getter
+/******/ 			});
+/******/ 		}
+/******/ 	};
+/******/
+/******/ 	// getDefaultExport function for compatibility with non-harmony modules
+/******/ 	__webpack_require__.n = function(module) {
+/******/ 		var getter = module && module.__esModule ?
+/******/ 			function getDefault() { return module['default']; } :
+/******/ 			function getModuleExports() { return module; };
+/******/ 		__webpack_require__.d(getter, 'a', getter);
+/******/ 		return getter;
+/******/ 	};
+/******/
+/******/ 	// Object.prototype.hasOwnProperty.call
+/******/ 	__webpack_require__.o = function(object, property) { return Object.prototype.hasOwnProperty.call(object, property); };
+/******/
+/******/ 	// __webpack_public_path__
+/******/ 	__webpack_require__.p = "";
+/******/
+/******/ 	// Load entry module and return exports
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
+/******/ })
+/************************************************************************/
+/******/ ([
+/* 0 */
+/***/ (function(module, exports, __webpack_require__) {
+
 "use strict";
+
 Object.defineProperty(exports, "__esModule", { value: true });
-const net_1 = require("net");
-const contants_1 = require("./contants");
-const interface_1 = require("./interface");
-const timers_1 = require("timers");
+var FLLScoreClient;
+(function (FLLScoreClient) {
+    let ConnectionStatus;
+    (function (ConnectionStatus) {
+        ConnectionStatus[ConnectionStatus["Disconnected"] = 0] = "Disconnected";
+        ConnectionStatus[ConnectionStatus["Connecting"] = 1] = "Connecting";
+        ConnectionStatus[ConnectionStatus["Connected"] = 2] = "Connected";
+    })(ConnectionStatus = FLLScoreClient.ConnectionStatus || (FLLScoreClient.ConnectionStatus = {}));
+})(FLLScoreClient = exports.FLLScoreClient || (exports.FLLScoreClient = {}));
+
+
+/***/ }),
+/* 1 */
+/***/ (function(module, exports, __webpack_require__) {
+
+module.exports = __webpack_require__(2);
+
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var interface_1 = __webpack_require__(0);
+exports.FLLScoreClient = interface_1.FLLScoreClient;
+var createClient_1 = __webpack_require__(3);
+exports.createClient = createClient_1.createClient;
+
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const clientImpl_1 = __webpack_require__(4);
+function createClient(host, port, name) {
+    return new clientImpl_1.ClientImpl(host, port, name);
+}
+exports.createClient = createClient;
+
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const net_1 = __webpack_require__(5);
+const contants_1 = __webpack_require__(6);
+const interface_1 = __webpack_require__(0);
+const timers_1 = __webpack_require__(7);
 class ClientImpl {
-    constructor(host = 'localhost', port = 25002, name = 'FLLScoreClient') {
+    constructor(host = 'localhost', port = 25002, name = 'FLLScoreClient', useWatchdog = true) {
         this.host = 'localhost';
         this.port = 25002;
         this.name = 'FLLScoreClient';
@@ -16,24 +148,16 @@ class ClientImpl {
         this.scoreInfo = undefined;
         this.status = interface_1.FLLScoreClient.ConnectionStatus.Disconnected;
         this.socket = new net_1.Socket();
+        this.useWatchdog = useWatchdog;
         this.connTest = undefined;
         this.watchdogInterval = 5;
-        this.socket.on('data', data => {
-            console.log('[INTERNAL]Received: ' + data.toString().trim());
-        });
-        this.socket.on('close', had_error => {
+        this.socket.on('close', () => {
             this.status = interface_1.FLLScoreClient.ConnectionStatus.Disconnected;
             if (this.connTest !== undefined) {
                 timers_1.clearInterval(this.connTest);
             }
             this.connTest = undefined;
             this.watchdogInterval = 5;
-            if (had_error) {
-                console.log('[INTERNAL]Connection Closed due to error: ');
-            }
-            else {
-                console.log('[INTERNAL]Connection Closed');
-            }
         });
     }
     connect() {
@@ -51,6 +175,7 @@ class ClientImpl {
                     resolve('Connected');
                 }
                 else {
+                    this.status = interface_1.FLLScoreClient.ConnectionStatus.Disconnected;
                     reject(new Error('Unexpected Message returned: ' + data));
                 }
             });
@@ -96,7 +221,6 @@ class ClientImpl {
                 if (contants_1.FLLScoreClientConstants.LAST_UPDATE.test(data.toString())) {
                     let raw = data.toString().trim();
                     let response = raw.substring(raw.indexOf(':') + 1);
-                    console.log('[Internal]Received: ' + response);
                     this.lastUpdate = new Date(response);
                     resolve(this.lastUpdate);
                 }
@@ -153,7 +277,7 @@ class ClientImpl {
                         });
                     }
                     else {
-                        console.log('[INTERNAL][SCORE] Unexpected command');
+                        // TODO: Deal with invalid command
                     }
                 });
             };
@@ -192,6 +316,9 @@ class ClientImpl {
         if (this.connTest !== undefined) {
             timers_1.clearInterval(this.connTest);
         }
+        if (!this.useWatchdog) {
+            return;
+        }
         this.connTest = setInterval(() => {
             if (this.status === interface_1.FLLScoreClient.ConnectionStatus.Connected) {
                 this.socket.write('Ping:\r\n');
@@ -200,4 +327,39 @@ class ClientImpl {
     }
 }
 exports.ClientImpl = ClientImpl;
-//# sourceMappingURL=clientImpl.js.map
+
+
+/***/ }),
+/* 5 */
+/***/ (function(module, exports) {
+
+module.exports = require("net");
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+var FLLScoreClientConstants;
+(function (FLLScoreClientConstants) {
+    FLLScoreClientConstants.WELCOME = /^Welcome:[0-9]+(\r\n)*$/;
+    FLLScoreClientConstants.ECHO = /^Echo:(\r\n)*$/;
+    FLLScoreClientConstants.SCORE_HEADER = /^Score Header:[a-zA-Z0-9\/: ]+(\|[0-9]+){3}(\r\n)*$/;
+    FLLScoreClientConstants.SCORE = /^Score:[0-9]+\|.+(\|(-1|[0-9]+)){4}(\r\n)*$/;
+    FLLScoreClientConstants.SCORE_DONE = /^Score Done:(\r\n)*$/;
+    FLLScoreClientConstants.LAST_UPDATE = /^Last Update:.+(\r\n)*$/;
+})(FLLScoreClientConstants = exports.FLLScoreClientConstants || (exports.FLLScoreClientConstants = {}));
+
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports) {
+
+module.exports = require("timers");
+
+/***/ })
+/******/ ]);
+});
+//# sourceMappingURL=fllscoreclient.js.map

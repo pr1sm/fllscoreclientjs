@@ -1,4 +1,4 @@
-var fllScoreClient = require('../dist/index');
+var fllScoreClient = require('../dist/fllscoreclient');
 
 var client = fllScoreClient.createClient('localhost', 8100);
 
