@@ -1,4 +1,5 @@
-var fllScoreClient = require('../dist/fllscoreclient');
+var fllScoreClient = require('fllscoreclient'); // Published version
+// val fllScoreClient = require('../dist/fllscoreclient'); // Uncomment for dev version
 
 var client = fllScoreClient.createClient('localhost', 8100);
 
