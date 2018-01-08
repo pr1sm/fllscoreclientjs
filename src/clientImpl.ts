@@ -2,7 +2,6 @@ import {Socket} from "net";
 import {FLLScoreClientConstants} from "./contants";
 import {FLLScoreClient} from "./interface";
 import Timer = NodeJS.Timer;
-import {clearInterval} from "timers";
 
 export class ClientImpl implements FLLScoreClient.Client {
 

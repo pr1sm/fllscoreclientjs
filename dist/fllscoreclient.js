@@ -135,7 +135,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const net_1 = __webpack_require__(5);
 const contants_1 = __webpack_require__(6);
 const interface_1 = __webpack_require__(0);
-const timers_1 = __webpack_require__(7);
 class ClientImpl {
     constructor(host = 'localhost', port = 25002, name = 'FLLScoreClient', useWatchdog = true) {
         this.host = 'localhost';
@@ -154,7 +153,7 @@ class ClientImpl {
         this.socket.on('close', () => {
             this.status = interface_1.FLLScoreClient.ConnectionStatus.Disconnected;
             if (this.connTest !== undefined) {
-                timers_1.clearInterval(this.connTest);
+                clearInterval(this.connTest);
             }
             this.connTest = undefined;
             this.watchdogInterval = 5;
@@ -314,7 +313,7 @@ class ClientImpl {
     }
     resetConnectionTest() {
         if (this.connTest !== undefined) {
-            timers_1.clearInterval(this.connTest);
+            clearInterval(this.connTest);
         }
         if (!this.useWatchdog) {
             return;
@@ -352,12 +351,6 @@ var FLLScoreClientConstants;
     FLLScoreClientConstants.LAST_UPDATE = /^Last Update:.+(\r\n)*$/;
 })(FLLScoreClientConstants = exports.FLLScoreClientConstants || (exports.FLLScoreClientConstants = {}));
 
-
-/***/ }),
-/* 7 */
-/***/ (function(module, exports) {
-
-module.exports = require("timers");
 
 /***/ })
 /******/ ]);

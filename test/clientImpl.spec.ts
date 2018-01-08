@@ -604,4 +604,94 @@ describe('ClientImpl', () => {
             });
         });
     });
+
+    describe('watchdog timer', () => {
+        let client:ClientImpl;
+        let connectStub;
+        let endStub;
+        let writeStub;
+        let setIntervalSpy;
+        let clearIntervalSpy;
+
+        beforeEach(() => {
+
+            this.clock = sinon.useFakeTimers();
+
+            setIntervalSpy = sinon.spy(this.clock, 'setInterval');
+            clearIntervalSpy = sinon.spy(this.clock, 'clearInterval');
+
+            client = new ClientImpl('localhost', 25002, 'UnitTest');
+            connectStub = sinon.stub(client.socket, 'connect');
+            connectStub.callsFake((options, cb) => {
+                expect(options.port).to.equal(25002);
+                expect(options.host).to.equal('localhost');
+                cb();
+            });
+
+            writeStub = sinon.stub(client.socket, 'write');
+            writeStub.withArgs('FLLScore:UnitTest|Primary\r\n').callsFake(() => {
+                client.socket.emit('data', 'Welcome:5\r\n');
+            });
+            writeStub.callsFake((buffer, cb) => {
+               if(buffer === 'Ping:\r\n') {
+                   client.socket.emit('data', 'Echo:\r\n');
+                   if(cb !== undefined) {
+                       cb();
+                   }
+               }
+            });
+
+            endStub = sinon.stub(client.socket, 'end');
+            endStub.callsFake(() => {
+                client.socket.emit('close', false);
+            });
+        });
+
+        afterEach(() => {
+            connectStub.restore();
+            writeStub.restore();
+            endStub.restore();
+            setIntervalSpy.restore();
+            clearIntervalSpy.restore();
+            this.clock.restore();
+        });
+
+        it('should cancel timer when closing connection', () => {
+            return client.connect().then(() => {
+                expect(setIntervalSpy).to.have.been.calledOnce;
+                return client.close();
+            }).then(() => {
+                expect(clearIntervalSpy).to.have.been.calledOnce;
+            });
+        });
+
+        it('should call ping when no calls have been made', () => {
+            return client.connect().then(() => {
+                expect(setIntervalSpy).to.have.been.calledOnce;
+                this.clock.tick(5100);
+                expect(writeStub).to.have.been.calledTwice;
+                this.clock.tick(5100);
+                expect(writeStub).to.have.been.calledThrice;
+                return client.close();
+            });
+        });
+
+        it('should reset timer when a call has been made', () => {
+            return client.connect().then(() => {
+                expect(setIntervalSpy).to.have.been.calledOnce;
+                this.clock.tick(5100);
+                expect(writeStub).to.have.been.calledTwice;
+                this.clock.tick(3000);
+                expect(clearIntervalSpy).not.to.have.been.called;
+                expect(setIntervalSpy).to.have.been.calledOnce;
+                return client.sendPing();
+            }).then(() => {
+                this.clock.tick(2000);
+                expect(clearIntervalSpy).to.have.been.calledOnce;
+                expect(setIntervalSpy).to.have.been.calledTwice;
+                expect(writeStub).to.have.been.calledThrice;
+                return client.close();
+            });
+        });
+    });
 });
