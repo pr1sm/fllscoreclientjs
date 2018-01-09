@@ -1,6 +1,7 @@
-import {ClientImpl} from "./clientImpl";
-import {FLLScoreClient} from "./interface";
+import {FLLScoreClient} from './interface';
+import {WebClientImpl} from './webClientImpl';
 
-export function createClient(host?: string, port?: number, name?: string) : FLLScoreClient.Client {
-    return new ClientImpl(host, port, name);
+export function createWebClient(host?: string, port?: number,
+                                name?: string, useWatchdog?: boolean): FLLScoreClient.IClient {
+    return new WebClientImpl(host, port, name, useWatchdog);
 }

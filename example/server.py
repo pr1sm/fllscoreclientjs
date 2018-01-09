@@ -20,9 +20,9 @@ class ClientHandlerThread(threading.Thread):
         return self._stop_event.is_set()
 
     def run(self):
-        raw_request = ''
         try:
             raw_request = self._client_socket.recv(1024)
+            print 'Received: {}'.format(raw_request);
             request = raw_request.strip().split(':', 2)
             if not len(request) == 2:
                 self._client_socket.send('invalid command\r\n')
@@ -38,6 +38,7 @@ class ClientHandlerThread(threading.Thread):
         while not self._stop_event.is_set():
             try:
                 raw_request = self._client_socket.recv(1024)
+                print 'Received: {}'.format(raw_request);
                 if not raw_request:
                     print '{} - {}: Connection Closed'.format(self._client_addr, self._client_name)
                     break

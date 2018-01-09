@@ -1,4 +1,3 @@
-
 export namespace FLLScoreClientConstants {
     export const WELCOME = /^Welcome:[0-9]+(\r\n)*$/;
     export const ECHO = /^Echo:(\r\n)*$/;

@@ -1,39 +1,35 @@
 /// <reference types="node" />
-import { Socket } from "net";
+/// <reference types="socket.io-client" />
+import { Socket } from 'net';
 export declare namespace FLLScoreClient {
-    enum ConnectionStatus {
-        Disconnected = 0,
-        Connecting = 1,
-        Connected = 2,
-    }
-    interface TeamInfo {
+    interface ITeamInfo {
         number: number;
         name: string;
         scores: number[];
         highScore: number;
     }
-    interface ScheduleInfo {
+    interface IScheduleInfo {
         lastUpdate: Date;
         numberOfTeams: number;
         numberOfMatches: number;
         numberOfCompletedMatches: number;
     }
-    interface ScoreInfo {
-        scheduleInfo: ScheduleInfo;
-        teamInfo: TeamInfo[];
+    interface IScoreInfo {
+        scheduleInfo: IScheduleInfo;
+        teamInfo: ITeamInfo[];
     }
-    interface Client {
-        connect(): Promise<String>;
-        sendPing(): Promise<String>;
-        sendLastUpdate(): Promise<Date>;
-        sendScore(): Promise<ScoreInfo>;
-        close(): Promise<String>;
+    interface IClient {
         host: string;
         name: string;
         port: number;
         lastUpdate?: Date;
-        scoreInfo?: ScoreInfo;
-        status: ConnectionStatus;
-        socket: Socket;
+        scoreInfo?: IScoreInfo;
+        status: number;
+        socket: Socket | SocketIOClient.Socket;
+        connect(): Promise<string>;
+        sendPing(): Promise<string>;
+        sendLastUpdate(): Promise<Date>;
+        sendScore(): Promise<IScoreInfo>;
+        close(): Promise<string>;
     }
 }

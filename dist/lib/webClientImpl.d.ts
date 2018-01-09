@@ -1,14 +1,13 @@
-/// <reference types="node" />
-import { Socket } from 'net';
+/// <reference types="socket.io-client" />
 import { FLLScoreClient } from './interface';
-export declare class ClientImpl implements FLLScoreClient.IClient {
+export declare class WebClientImpl implements FLLScoreClient.IClient {
     host: string;
     port: number;
     name: string;
     lastUpdate?: Date;
     scoreInfo?: FLLScoreClient.IScoreInfo;
     status: number;
-    socket: Socket;
+    socket: SocketIOClient.Socket;
     private useWatchdog;
     private watchdogInterval;
     private connTest?;

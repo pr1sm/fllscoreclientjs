@@ -1,17 +1,16 @@
-import {Socket} from 'net';
+import * as io from 'socket.io-client';
 import {FLLScoreClientConstants} from './contants';
 import {FLLScoreClient} from './interface';
 import Timer = NodeJS.Timer;
 
-export class ClientImpl implements FLLScoreClient.IClient {
-
+export class WebClientImpl implements FLLScoreClient.IClient {
     public host: string = 'localhost';
     public port: number = 25002;
     public name: string = 'FLLScoreClient';
     public lastUpdate?: Date;
     public scoreInfo?: FLLScoreClient.IScoreInfo;
     public status: number;
-    public socket: Socket;
+    public socket: SocketIOClient.Socket;
 
     private useWatchdog: boolean;
     private watchdogInterval: number;
@@ -25,7 +24,7 @@ export class ClientImpl implements FLLScoreClient.IClient {
         this.lastUpdate = undefined;
         this.scoreInfo = undefined;
         this.status = 0;
-        this.socket = new Socket();
+        this.socket = io('ws://' + this.host + ':' + this.port, {autoConnect: false});
         this.useWatchdog = useWatchdog;
         this.connTest = undefined;
         this.watchdogInterval = 5;
@@ -44,12 +43,18 @@ export class ClientImpl implements FLLScoreClient.IClient {
         return new Promise<string>((resolve, reject) => {
             this.status = 1;
 
-            this.socket.once('error', (err) => {
+            this.socket.once('connect_error', (err: Error) => {
                 this.status = 0;
                 reject(err);
             });
 
-            this.socket.once('data', (data) =>  {
+            this.socket.once('connect_timeout', (err: Error) => {
+                this.status = 0;
+                reject(err);
+            });
+
+            this.socket.once('message', (data: string) => {
+                console.log('received: ' + data);
                 if (FLLScoreClientConstants.WELCOME.test(data.toString())) {
                     const raw = data.toString().trim();
                     this.watchdogInterval = parseInt(raw.substring(raw.indexOf(':') + 1), 10);
@@ -61,13 +66,13 @@ export class ClientImpl implements FLLScoreClient.IClient {
                 }
             });
 
-            this.socket.connect({
-                host: this.host,
-                port: this.port,
-            }, () => {
+            this.socket.on('connect', () => {
+                console.log('connected');
                 this.status = 2;
-                this.socket.write('FLLScore:' + this.name + '|Primary\r\n');
+                this.socket.send('FLLScore:' + this.name + '|Primary\r\n');
             });
+
+            this.socket.connect();
         });
     }
 
@@ -77,20 +82,17 @@ export class ClientImpl implements FLLScoreClient.IClient {
                 reject(new Error('Not Connected'));
             }
 
-            this.socket.once('error', (err) => {
+            this.socket.once('error', (err: Error) => {
                 reject(err);
             });
 
-            this.socket.once('data', (data) => {
+            this.socket.send('Ping:\r\n', (data: string) => {
+                this.resetConnectionTest();
                 if (FLLScoreClientConstants.ECHO.test(data.toString())) {
                     resolve('Echo Received');
                 } else {
                     reject(new Error('Unexpected Message returned: ' + data));
                 }
-            });
-
-            this.socket.write('Ping:\r\n', () => {
-                this.resetConnectionTest();
             });
         });
     }
@@ -101,11 +103,12 @@ export class ClientImpl implements FLLScoreClient.IClient {
                 reject(new Error('Not Connected'));
             }
 
-            this.socket.once('error', (err) => {
+            this.socket.once('error', (err: Error) => {
                 reject(err);
             });
 
-            this.socket.once('data', (data) => {
+            this.socket.send('Send Last Update:\r\n', (data: string) => {
+                this.resetConnectionTest();
                 if (FLLScoreClientConstants.LAST_UPDATE.test(data.toString())) {
                     const raw = data.toString().trim();
                     const response = raw.substring(raw.indexOf(':') + 1);
@@ -114,10 +117,6 @@ export class ClientImpl implements FLLScoreClient.IClient {
                 } else {
                     reject(new Error('Unexpected Message returned: ' + data));
                 }
-            });
-
-            this.socket.write('Send Last Update:\r\n', () => {
-                this.resetConnectionTest();
             });
         });
     }
@@ -172,13 +171,13 @@ export class ClientImpl implements FLLScoreClient.IClient {
                 reject(new Error('Not Connected'));
             }
 
-            this.socket.once('error', (err) => {
+            this.socket.once('error', (err: Error) => {
                 reject(err);
             });
 
-            this.socket.on('data', sendScoreDataHandler);
+            this.socket.on('message', sendScoreDataHandler);
 
-            this.socket.write('Send Score:\r\n', () => {
+            this.socket.send('Send Score:\r\n', () => {
                 this.resetConnectionTest();
             });
         });
@@ -190,19 +189,19 @@ export class ClientImpl implements FLLScoreClient.IClient {
                 reject(new Error('Not Connected'));
             }
 
-            this.socket.once('error', (err) => {
+            this.socket.once('error', (err: Error) => {
                 reject(err);
             });
 
-            this.socket.once('close', (hadError) => {
-                if (hadError) {
+            this.socket.once('disconnect', (reason: any) => {
+                if (reason) {
                     reject(new Error('Closed with error'));
                 } else {
                     resolve('Connection Closed');
                 }
             });
 
-            this.socket.end();
+            this.socket.close();
         });
     }
 
@@ -217,7 +216,7 @@ export class ClientImpl implements FLLScoreClient.IClient {
 
         this.connTest = setInterval(() => {
             if (this.status === 2) {
-                this.socket.write('Ping:\r\n');
+                this.socket.send('Ping:\r\n');
             }
         }, this.watchdogInterval * 1000);
     }
