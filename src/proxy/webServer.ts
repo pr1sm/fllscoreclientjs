@@ -1,9 +1,8 @@
 import * as io from 'socket.io';
-import {FLLScoreClient} from './interface';
-import {Socket} from 'net';
+import {FLLScoreClient} from '../shared/interface';
 import {createClient} from './createServer';
 
-export class WebServerImpl {
+export class WebServer {
     public host: string = 'localhost';
     public port: number = 25002;
     public name: string = 'FLLScoreClient';
@@ -23,26 +22,14 @@ export class WebServerImpl {
 
         this.server = io();
         this.server.on('connection', (client: SocketIO.Socket) => {
-            if (this.fllclient.socket instanceof Socket) {
-                this.fllclient.socket.on('data', (data) => {
-                    console.log('forwarding to websocket:\n' + data);
-                    client.send(data);
-                });
-            } else {
-                this.fllclient.socket.on('message', (data: string) => {
-                    console.log('forwarding to websocket:\n' + data);
-                    client.send(data);
-                });
-            }
+            this.fllclient.socket.on('data', (data) => {
+                console.log('forwarding to websocket:\n' + data);
+                client.send(data);
+            });
 
             client.on('message', (data: string) => {
-                if (this.fllclient.socket instanceof Socket) {
-                    console.log('forwarding to socket:\n' + data);
-                    this.fllclient.socket.write(data);
-                } else {
-                    console.log('forwarding to socket:\n' + data);
-                    this.fllclient.socket.send(data);
-                }
+                console.log('forwarding to socket:\n' + data);
+                this.fllclient.socket.write(data);
             });
         });
     }

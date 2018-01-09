@@ -3,18 +3,18 @@ import * as sinon from "sinon";
 import * as sinonChai from "sinon-chai";
 
 import { expect } from "chai";
-import { ClientImpl } from "../src/clientImpl";
-import { FLLScoreClient } from "../src";
-import { FLLScoreClientConstants } from '../src/contants';
+import { Client } from "../src/proxy/client";
+import { FLLScoreClient } from "../src/shared/interface";
+import { FLLScoreClientConstants } from '../src/shared/contants';
 import { Socket } from "net";
 
 chai.use(sinonChai);
 chai.use(require("chai-datetime"));
 
-describe('ClientImpl', () => {
+describe('Client', () => {
     describe('constructor', () => {
         it('should construct with no parameters', () => {
-            let client = new ClientImpl();
+            let client = new Client();
 
             expect(client.host).to.equal('localhost');
             expect(client.port).to.equal(25002);
@@ -26,7 +26,7 @@ describe('ClientImpl', () => {
         });
 
         it('should construct with host', () => {
-            let client = new ClientImpl('new-host');
+            let client = new Client('new-host');
 
             expect(client.host).to.equal('new-host');
             expect(client.port).to.equal(25002);
@@ -38,7 +38,7 @@ describe('ClientImpl', () => {
         });
 
         it('should construct with host and port', () => {
-            let client = new ClientImpl('new-host', 8080);
+            let client = new Client('new-host', 8080);
 
             expect(client.host).to.equal('new-host');
             expect(client.port).to.equal(8080);
@@ -50,7 +50,7 @@ describe('ClientImpl', () => {
         });
 
         it('should construct with host, port and name', () => {
-            let client = new ClientImpl('new-host', 8080, 'new-name');
+            let client = new Client('new-host', 8080, 'new-name');
 
             expect(client.host).to.equal('new-host');
             expect(client.port).to.equal(8080);
@@ -63,12 +63,12 @@ describe('ClientImpl', () => {
     });
 
     describe('connect', () => {
-        let client:ClientImpl;
+        let client:Client;
         let connectStub;
         let writeStub;
 
         beforeEach(() => {
-            client = new ClientImpl('localhost', 25002, 'UnitTest', false);
+            client = new Client('localhost', 25002, 'UnitTest', false);
         });
 
         it('should resolve on successful connect', (done) => {
@@ -160,12 +160,12 @@ describe('ClientImpl', () => {
     });
 
     describe('sendPing', () => {
-        let client:ClientImpl;
+        let client:Client;
         let connectStub;
         let writeStub;
 
         beforeEach(() => {
-            client = new ClientImpl('localhost', 25002, 'UnitTest', false);
+            client = new Client('localhost', 25002, 'UnitTest', false);
         });
 
         it('should resolve on successful ping', () => {
@@ -274,12 +274,12 @@ describe('ClientImpl', () => {
     });
 
     describe('sendLastUpdate', () => {
-        let client:ClientImpl;
+        let client:Client;
         let connectStub;
         let writeStub;
 
         beforeEach(() => {
-            client = new ClientImpl('localhost', 25002, 'UnitTest', false);
+            client = new Client('localhost', 25002, 'UnitTest', false);
             connectStub = sinon.stub(client.socket, 'connect');
             connectStub.callsFake((options, cb) => {
                 expect(options.port).to.equal(25002);
@@ -373,12 +373,12 @@ describe('ClientImpl', () => {
     });
 
     describe('sendScore', () => {
-        let client:ClientImpl;
+        let client:Client;
         let connectStub;
         let writeStub;
 
         beforeEach(() => {
-            client = new ClientImpl('localhost', 25002, 'UnitTest', false);
+            client = new Client('localhost', 25002, 'UnitTest', false);
             connectStub = sinon.stub(client.socket, 'connect');
             connectStub.callsFake((options, cb) => {
                 expect(options.port).to.equal(25002);
@@ -510,13 +510,13 @@ describe('ClientImpl', () => {
     });
 
     describe('close', () => {
-        let client:ClientImpl;
+        let client:Client;
         let connectStub;
         let endStub;
         let writeStub;
 
         beforeEach(() => {
-            client = new ClientImpl('localhost', 25002, 'UnitTest', false);
+            client = new Client('localhost', 25002, 'UnitTest', false);
             connectStub = sinon.stub(client.socket, 'connect');
             connectStub.callsFake((options, cb) => {
                 expect(options.port).to.equal(25002);
@@ -607,7 +607,7 @@ describe('ClientImpl', () => {
     });
 
     describe('watchdog timer', () => {
-        let client:ClientImpl;
+        let client:Client;
         let connectStub;
         let endStub;
         let writeStub;
@@ -621,7 +621,7 @@ describe('ClientImpl', () => {
             setIntervalSpy = sinon.spy(this.clock, 'setInterval');
             clearIntervalSpy = sinon.spy(this.clock, 'clearInterval');
 
-            client = new ClientImpl('localhost', 25002, 'UnitTest');
+            client = new Client('localhost', 25002, 'UnitTest');
             connectStub = sinon.stub(client.socket, 'connect');
             connectStub.callsFake((options, cb) => {
                 expect(options.port).to.equal(25002);

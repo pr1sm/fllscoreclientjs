@@ -1,9 +1,9 @@
 import {Socket} from 'net';
-import {FLLScoreClientConstants} from './contants';
-import {FLLScoreClient} from './interface';
+import {FLLScoreClientConstants} from '../shared/contants';
+import {FLLScoreClient} from '../shared/interface';
 import Timer = NodeJS.Timer;
 
-export class ClientImpl implements FLLScoreClient.IClient {
+export class Client implements FLLScoreClient.IClient {
 
     public host: string = 'localhost';
     public port: number = 25002;

@@ -4251,9 +4251,9 @@ exports.createWebClient = createClient_1.createWebClient;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const webClientImpl_1 = __webpack_require__(27);
+const webClient_1 = __webpack_require__(27);
 function createWebClient(host, port, name, useWatchdog) {
-    return new webClientImpl_1.WebClientImpl(host, port, name, useWatchdog);
+    return new webClient_1.WebClient(host, port, name, useWatchdog);
 }
 exports.createWebClient = createWebClient;
 
@@ -4267,8 +4267,10 @@ exports.createWebClient = createWebClient;
 Object.defineProperty(exports, "__esModule", { value: true });
 const io = __webpack_require__(32);
 const contants_1 = __webpack_require__(53);
-class WebClientImpl {
+var EventEmitter = NodeJS.EventEmitter;
+class WebClient extends EventEmitter {
     constructor(host = 'localhost', port = 25002, name = 'FLLScoreClient', useWatchdog = true) {
+        super();
         this.host = 'localhost';
         this.port = 25002;
         this.name = 'FLLScoreClient';
@@ -4454,7 +4456,7 @@ class WebClientImpl {
         }, this.watchdogInterval * 1000);
     }
 }
-exports.WebClientImpl = WebClientImpl;
+exports.WebClient = WebClient;
 
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
 

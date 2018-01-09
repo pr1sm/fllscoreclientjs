@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { FLLScoreClientConstants } from "../src/contants";
+import { FLLScoreClientConstants } from "../src/shared/contants";
 
 describe('FLLScoreClientConstants', () => {
     describe('Welcome Regex', () => {

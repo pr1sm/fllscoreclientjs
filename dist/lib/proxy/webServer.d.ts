@@ -1,4 +1,4 @@
-export declare class WebServerImpl {
+export declare class WebServer {
     host: string;
     port: number;
     name: string;

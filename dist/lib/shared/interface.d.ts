@@ -1,6 +1,7 @@
 /// <reference types="node" />
 /// <reference types="socket.io-client" />
 import { Socket } from 'net';
+import EventEmitter = NodeJS.EventEmitter;
 export declare namespace FLLScoreClient {
     interface ITeamInfo {
         number: number;
@@ -25,11 +26,14 @@ export declare namespace FLLScoreClient {
         lastUpdate?: Date;
         scoreInfo?: IScoreInfo;
         status: number;
-        socket: Socket | SocketIOClient.Socket;
+        socket: Socket;
         connect(): Promise<string>;
         sendPing(): Promise<string>;
         sendLastUpdate(): Promise<Date>;
         sendScore(): Promise<IScoreInfo>;
         close(): Promise<string>;
+    }
+    interface IWebClient extends EventEmitter {
+        socket: SocketIOClient.Socket;
     }
 }

@@ -1,15 +1,15 @@
-var webpack = require('webpack');
-var fs = require('fs');
-var path = require('path');
-var yargs = require('yargs');
+let webpack = require('webpack');
+let fs = require('fs');
+let path = require('path');
+let yargs = require('yargs');
 
-var libraryName = 'fllscoreclient';
-var libServerName = 'fllscoreclientserver';
-var plugins = [];
-var outputFile;
-var outputServerFile;
+let libName = 'fllscoreclient';
+let libProxyName = 'fllscoreclientproxy';
+let plugins = [];
+let outputFile;
+let outputProxyFile;
 
-var nodeModules = {};
+let nodeModules = {};
 fs.readdirSync('node_modules')
     .filter(function(x) {
         return ['.bin'].indexOf(x) === -1;
@@ -20,22 +20,22 @@ fs.readdirSync('node_modules')
 
 if(yargs.argv.p) {
     plugins.push(new webpack.optimize.UglifyJsPlugin({minimize: true}));
-    outputFile = libraryName + '.min.js';
-    outputServerFile = libServerName + '.min.js';
+    outputFile = libName + '.min.js';
+    outputProxyFile = libProxyName + '.min.js';
 } else {
-    outputFile = libraryName + '.js';
-    outputServerFile = libServerName + '.js';
+    outputFile = libName + '.js';
+    outputProxyFile = libProxyName + '.js';
 }
 
-var clientConfig = {
+let clientConfig = {
     entry: [
-        __dirname + '/src/index.ts'
+        __dirname + '/src/client/index.ts'
     ],
     devtool: 'source-map',
     output: {
         path: path.join(__dirname + '/dist'),
         filename: outputFile,
-        library: libraryName,
+        library: libName,
         libraryTarget: 'umd',
         umdNamedDefine: true
     },
@@ -58,15 +58,15 @@ var clientConfig = {
     }
 };
 
-var serverConfig = {
+let serverConfig = {
     entry: [
-        __dirname + '/src/indexServer.ts'
+        __dirname + '/src/proxy/index.ts'
     ],
     devtool: 'source-map',
     output: {
         path: path.join(__dirname + '/dist'),
-        filename: outputServerFile,
-        library: libServerName,
+        filename: outputProxyFile,
+        library: libProxyName,
         libraryTarget: 'umd',
         umdNamedDefine: true
     },

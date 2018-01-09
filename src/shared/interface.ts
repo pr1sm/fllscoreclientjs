@@ -1,4 +1,5 @@
 import {Socket} from 'net';
+import EventEmitter = NodeJS.EventEmitter;
 
 export declare namespace FLLScoreClient {
 
@@ -28,7 +29,7 @@ export declare namespace FLLScoreClient {
         lastUpdate?: Date;
         scoreInfo?: IScoreInfo;
         status: number;
-        socket: Socket| SocketIOClient.Socket;
+        socket: Socket;
 
         connect(): Promise<string>;
 
@@ -39,5 +40,9 @@ export declare namespace FLLScoreClient {
         sendScore(): Promise<IScoreInfo>;
 
         close(): Promise<string>;
+    }
+
+    export interface IWebClient extends EventEmitter {
+        socket: SocketIOClient.Socket;
     }
 }

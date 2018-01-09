@@ -1,9 +1,10 @@
 import * as io from 'socket.io-client';
-import {FLLScoreClientConstants} from './contants';
-import {FLLScoreClient} from './interface';
+import {FLLScoreClientConstants} from '../shared/contants';
+import {FLLScoreClient} from '../shared/interface';
 import Timer = NodeJS.Timer;
+import EventEmitter = NodeJS.EventEmitter;
 
-export class WebClientImpl implements FLLScoreClient.IClient {
+export class WebClient extends EventEmitter implements FLLScoreClient.IWebClient {
     public host: string = 'localhost';
     public port: number = 25002;
     public name: string = 'FLLScoreClient';
@@ -18,6 +19,7 @@ export class WebClientImpl implements FLLScoreClient.IClient {
 
     constructor(host: string = 'localhost', port: number = 25002,
                 name: string = 'FLLScoreClient', useWatchdog: boolean = true) {
+        super();
         this.host = host;
         this.port = port;
         this.name = name;

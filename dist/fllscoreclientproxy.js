@@ -2,11 +2,11 @@
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
 	else if(typeof define === 'function' && define.amd)
-		define("fllscoreclientserver", [], factory);
+		define("fllscoreclientproxy", [], factory);
 	else if(typeof exports === 'object')
-		exports["fllscoreclientserver"] = factory();
+		exports["fllscoreclientproxy"] = factory();
 	else
-		root["fllscoreclientserver"] = factory();
+		root["fllscoreclientproxy"] = factory();
 })(typeof self !== 'undefined' ? self : this, function() {
 return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
@@ -70,7 +70,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 2);
+/******/ 	return __webpack_require__(__webpack_require__.s = 1);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -80,33 +80,27 @@ return /******/ (function(modules) { // webpackBootstrap
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const webServerImpl_1 = __webpack_require__(4);
-const clientImpl_1 = __webpack_require__(6);
+const client_1 = __webpack_require__(3);
+const webServer_1 = __webpack_require__(6);
 function createClient(host, port, name, useWatchdog) {
-    return new clientImpl_1.ClientImpl(host, port, name, useWatchdog);
+    return new client_1.Client(host, port, name, useWatchdog);
 }
 exports.createClient = createClient;
 function createWebServer(host, port, name, useWatchdog) {
-    return new webServerImpl_1.WebServerImpl(host, port, name, useWatchdog);
+    return new webServer_1.WebServer(host, port, name, useWatchdog);
 }
 exports.createWebServer = createWebServer;
 
 
 /***/ }),
 /* 1 */
-/***/ (function(module, exports) {
+/***/ (function(module, exports, __webpack_require__) {
 
-module.exports = require("net");
+module.exports = __webpack_require__(2);
+
 
 /***/ }),
 /* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-module.exports = __webpack_require__(3);
-
-
-/***/ }),
-/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -118,82 +112,15 @@ exports.createWebServer = createServer_1.createWebServer;
 
 
 /***/ }),
-/* 4 */
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const io = __webpack_require__(5);
-const net_1 = __webpack_require__(1);
-const createServer_1 = __webpack_require__(0);
-class WebServerImpl {
-    constructor(host = 'localhost', port = 25002, name = 'FLLScoreClient', useWatchdog = true) {
-        this.host = 'localhost';
-        this.port = 25002;
-        this.name = 'FLLScoreClient';
-        this.useWatchdog = true;
-        this.host = host;
-        this.port = port;
-        this.name = name;
-        this.useWatchdog = useWatchdog;
-        this.fllclient = createServer_1.createClient(this.host, this.port, this.name, this.useWatchdog);
-        this.server = io();
-        this.server.on('connection', (client) => {
-            if (this.fllclient.socket instanceof net_1.Socket) {
-                this.fllclient.socket.on('data', (data) => {
-                    console.log('forwarding to websocket:\n' + data);
-                    client.send(data);
-                });
-            }
-            else {
-                this.fllclient.socket.on('message', (data) => {
-                    console.log('forwarding to websocket:\n' + data);
-                    client.send(data);
-                });
-            }
-            client.on('message', (data) => {
-                if (this.fllclient.socket instanceof net_1.Socket) {
-                    console.log('forwarding to socket:\n' + data);
-                    this.fllclient.socket.write(data);
-                }
-                else {
-                    console.log('forwarding to socket:\n' + data);
-                    this.fllclient.socket.send(data);
-                }
-            });
-        });
-    }
-    startServer() {
-        return new Promise((resolve) => {
-            this.fllclient.connect().then(() => {
-                this.server.listen(this.fllclient.port + 1);
-                resolve(true);
-            }).catch(() => {
-                resolve(false);
-            });
-        });
-    }
-}
-exports.WebServerImpl = WebServerImpl;
-
-
-/***/ }),
-/* 5 */
-/***/ (function(module, exports) {
-
-module.exports = require("socket.io");
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-const net_1 = __webpack_require__(1);
-const contants_1 = __webpack_require__(7);
-class ClientImpl {
+const net_1 = __webpack_require__(4);
+const contants_1 = __webpack_require__(5);
+class Client {
     constructor(host = 'localhost', port = 25002, name = 'FLLScoreClient', useWatchdog = true) {
         this.host = 'localhost';
         this.port = 25002;
@@ -380,11 +307,17 @@ class ClientImpl {
         }, this.watchdogInterval * 1000);
     }
 }
-exports.ClientImpl = ClientImpl;
+exports.Client = Client;
 
 
 /***/ }),
-/* 7 */
+/* 4 */
+/***/ (function(module, exports) {
+
+module.exports = require("net");
+
+/***/ }),
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -407,7 +340,59 @@ var FLLScoreClientConstants;
 })(FLLScoreClientConstants = exports.FLLScoreClientConstants || (exports.FLLScoreClientConstants = {}));
 
 
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const io = __webpack_require__(7);
+const createServer_1 = __webpack_require__(0);
+class WebServer {
+    constructor(host = 'localhost', port = 25002, name = 'FLLScoreClient', useWatchdog = true) {
+        this.host = 'localhost';
+        this.port = 25002;
+        this.name = 'FLLScoreClient';
+        this.useWatchdog = true;
+        this.host = host;
+        this.port = port;
+        this.name = name;
+        this.useWatchdog = useWatchdog;
+        this.fllclient = createServer_1.createClient(this.host, this.port, this.name, this.useWatchdog);
+        this.server = io();
+        this.server.on('connection', (client) => {
+            this.fllclient.socket.on('data', (data) => {
+                console.log('forwarding to websocket:\n' + data);
+                client.send(data);
+            });
+            client.on('message', (data) => {
+                console.log('forwarding to socket:\n' + data);
+                this.fllclient.socket.write(data);
+            });
+        });
+    }
+    startServer() {
+        return new Promise((resolve) => {
+            this.fllclient.connect().then(() => {
+                this.server.listen(this.fllclient.port + 1);
+                resolve(true);
+            }).catch(() => {
+                resolve(false);
+            });
+        });
+    }
+}
+exports.WebServer = WebServer;
+
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports) {
+
+module.exports = require("socket.io");
+
 /***/ })
 /******/ ]);
 });
-//# sourceMappingURL=fllscoreclientserver.js.map
+//# sourceMappingURL=fllscoreclientproxy.js.map

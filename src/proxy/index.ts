@@ -1,2 +1,2 @@
-export { FLLScoreClient } from './interface';
+export { FLLScoreClient } from '../shared/interface';
 export { createClient, createWebServer } from './createServer';

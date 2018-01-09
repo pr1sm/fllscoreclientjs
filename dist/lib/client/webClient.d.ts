@@ -1,14 +1,15 @@
 /// <reference types="node" />
-import { Socket } from 'net';
-import { FLLScoreClient } from './interface';
-export declare class ClientImpl implements FLLScoreClient.IClient {
+/// <reference types="socket.io-client" />
+import { FLLScoreClient } from '../shared/interface';
+import EventEmitter = NodeJS.EventEmitter;
+export declare class WebClient extends EventEmitter implements FLLScoreClient.IWebClient {
     host: string;
     port: number;
     name: string;
     lastUpdate?: Date;
     scoreInfo?: FLLScoreClient.IScoreInfo;
     status: number;
-    socket: Socket;
+    socket: SocketIOClient.Socket;
     private useWatchdog;
     private watchdogInterval;
     private connTest?;
