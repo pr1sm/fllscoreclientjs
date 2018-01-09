@@ -1,6 +1,6 @@
 import * as io from 'socket.io';
 import {FLLScoreClient} from '../shared/interface';
-import {createClient} from './createServer';
+import {createClient} from './index';
 
 export class WebServer {
     public host: string = 'localhost';

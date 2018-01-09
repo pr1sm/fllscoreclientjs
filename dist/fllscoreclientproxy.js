@@ -80,8 +80,8 @@ return /******/ (function(modules) { // webpackBootstrap
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const client_1 = __webpack_require__(3);
-const webServer_1 = __webpack_require__(6);
+const client_1 = __webpack_require__(2);
+const webServer_1 = __webpack_require__(5);
 function createClient(host, port, name, useWatchdog) {
     return new client_1.Client(host, port, name, useWatchdog);
 }
@@ -96,7 +96,7 @@ exports.createWebServer = createWebServer;
 /* 1 */
 /***/ (function(module, exports, __webpack_require__) {
 
-module.exports = __webpack_require__(2);
+module.exports = __webpack_require__(0);
 
 
 /***/ }),
@@ -106,20 +106,8 @@ module.exports = __webpack_require__(2);
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-var createServer_1 = __webpack_require__(0);
-exports.createClient = createServer_1.createClient;
-exports.createWebServer = createServer_1.createWebServer;
-
-
-/***/ }),
-/* 3 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-const net_1 = __webpack_require__(4);
-const contants_1 = __webpack_require__(5);
+const net_1 = __webpack_require__(3);
+const contants_1 = __webpack_require__(4);
 class Client {
     constructor(host = 'localhost', port = 25002, name = 'FLLScoreClient', useWatchdog = true) {
         this.host = 'localhost';
@@ -311,13 +299,13 @@ exports.Client = Client;
 
 
 /***/ }),
-/* 4 */
+/* 3 */
 /***/ (function(module, exports) {
 
 module.exports = require("net");
 
 /***/ }),
-/* 5 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -341,14 +329,14 @@ var FLLScoreClientConstants;
 
 
 /***/ }),
-/* 6 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const io = __webpack_require__(7);
-const createServer_1 = __webpack_require__(0);
+const io = __webpack_require__(6);
+const index_1 = __webpack_require__(0);
 class WebServer {
     constructor(host = 'localhost', port = 25002, name = 'FLLScoreClient', useWatchdog = true) {
         this.host = 'localhost';
@@ -359,7 +347,7 @@ class WebServer {
         this.port = port;
         this.name = name;
         this.useWatchdog = useWatchdog;
-        this.fllclient = createServer_1.createClient(this.host, this.port, this.name, this.useWatchdog);
+        this.fllclient = index_1.createClient(this.host, this.port, this.name, this.useWatchdog);
         this.server = io();
         this.server.on('connection', (client) => {
             this.fllclient.socket.on('data', (data) => {
@@ -387,7 +375,7 @@ exports.WebServer = WebServer;
 
 
 /***/ }),
-/* 7 */
+/* 6 */
 /***/ (function(module, exports) {
 
 module.exports = require("socket.io");
