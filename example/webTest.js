@@ -1,7 +1,4 @@
-// var fllScoreClient = require('fllscoreclient'); // Published version
-var fllScoreClient = require('../dist/fllscoreclient'); // Uncomment for dev version
-
-var client = fllScoreClient.createWebClient('0.0.0.0', 8101);
+var client = fllscoreclient.createWebClient('0.0.0.0', 8101);
 
 client.connect().then(function(res) {
     console.log(res);
