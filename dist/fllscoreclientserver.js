@@ -113,6 +113,7 @@ module.exports = __webpack_require__(3);
 
 Object.defineProperty(exports, "__esModule", { value: true });
 var createServer_1 = __webpack_require__(0);
+exports.createClient = createServer_1.createClient;
 exports.createWebServer = createServer_1.createWebServer;
 
 
@@ -397,6 +398,12 @@ var FLLScoreClientConstants;
     FLLScoreClientConstants.SCORE = /^Score:[0-9]+\|.+(\|(-1|[0-9]+)){4}(\r\n)*$/;
     FLLScoreClientConstants.SCORE_DONE = /^Score Done:(\r\n)*$/;
     FLLScoreClientConstants.LAST_UPDATE = /^Last Update:.+(\r\n)*$/;
+    let ConnectionStatus;
+    (function (ConnectionStatus) {
+        ConnectionStatus.Disconnected = 0;
+        ConnectionStatus.Connecting = 1;
+        ConnectionStatus.Connected = 2;
+    })(ConnectionStatus = FLLScoreClientConstants.ConnectionStatus || (FLLScoreClientConstants.ConnectionStatus = {}));
 })(FLLScoreClientConstants = exports.FLLScoreClientConstants || (exports.FLLScoreClientConstants = {}));
 
 

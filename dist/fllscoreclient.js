@@ -8134,6 +8134,12 @@ var FLLScoreClientConstants;
     FLLScoreClientConstants.SCORE = /^Score:[0-9]+\|.+(\|(-1|[0-9]+)){4}(\r\n)*$/;
     FLLScoreClientConstants.SCORE_DONE = /^Score Done:(\r\n)*$/;
     FLLScoreClientConstants.LAST_UPDATE = /^Last Update:.+(\r\n)*$/;
+    let ConnectionStatus;
+    (function (ConnectionStatus) {
+        ConnectionStatus.Disconnected = 0;
+        ConnectionStatus.Connecting = 1;
+        ConnectionStatus.Connected = 2;
+    })(ConnectionStatus = FLLScoreClientConstants.ConnectionStatus || (FLLScoreClientConstants.ConnectionStatus = {}));
 })(FLLScoreClientConstants = exports.FLLScoreClientConstants || (exports.FLLScoreClientConstants = {}));
 
 

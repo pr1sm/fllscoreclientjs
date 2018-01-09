@@ -5,6 +5,7 @@ import * as sinonChai from "sinon-chai";
 import { expect } from "chai";
 import { ClientImpl } from "../src/clientImpl";
 import { FLLScoreClient } from "../src";
+import { FLLScoreClientConstants } from '../src/contants';
 import { Socket } from "net";
 
 chai.use(sinonChai);
@@ -18,7 +19,7 @@ describe('ClientImpl', () => {
             expect(client.host).to.equal('localhost');
             expect(client.port).to.equal(25002);
             expect(client.name).to.equal('FLLScoreClient');
-            expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+            expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             expect(client.lastUpdate).to.be.undefined;
             expect(client.scoreInfo).to.be.undefined;
             expect(client.socket instanceof Socket).to.be.true;
@@ -30,7 +31,7 @@ describe('ClientImpl', () => {
             expect(client.host).to.equal('new-host');
             expect(client.port).to.equal(25002);
             expect(client.name).to.equal('FLLScoreClient');
-            expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+            expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             expect(client.lastUpdate).to.be.undefined;
             expect(client.scoreInfo).to.be.undefined;
             expect(client.socket instanceof Socket).to.be.true;
@@ -42,7 +43,7 @@ describe('ClientImpl', () => {
             expect(client.host).to.equal('new-host');
             expect(client.port).to.equal(8080);
             expect(client.name).to.equal('FLLScoreClient');
-            expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+            expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             expect(client.lastUpdate).to.be.undefined;
             expect(client.scoreInfo).to.be.undefined;
             expect(client.socket instanceof Socket).to.be.true;
@@ -54,7 +55,7 @@ describe('ClientImpl', () => {
             expect(client.host).to.equal('new-host');
             expect(client.port).to.equal(8080);
             expect(client.name).to.equal('new-name');
-            expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+            expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             expect(client.lastUpdate).to.be.undefined;
             expect(client.scoreInfo).to.be.undefined;
             expect(client.socket instanceof Socket).to.be.true;
@@ -86,10 +87,10 @@ describe('ClientImpl', () => {
                 client.socket.emit('data', 'Welcome:5\r\n');
             });
 
-            expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+            expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             client.connect().then((res) => {
                 expect(res).to.equal('Connected');
-                expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Connected);
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connected);
                 expect(connectStub).to.have.been.calledOnce;
                 expect(writeStub).to.have.been.calledOnce;
                 expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
@@ -97,7 +98,7 @@ describe('ClientImpl', () => {
                 writeStub.restore();
                 done();
             });
-            expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Connecting);
+            expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connecting);
         });
 
         it('should reject when an connect error occurs', (done) => {
@@ -115,17 +116,17 @@ describe('ClientImpl', () => {
                 client.socket.emit('data', 'Welcome:5\r\n');
             });
 
-            expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+            expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             client.connect().catch((err) => {
                 expect(err.message).to.equal('connect error');
-                expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
                 expect(connectStub).to.have.been.calledOnce;
                 expect(writeStub).not.to.have.been.calledOnce;
                 connectStub.restore();
                 writeStub.restore();
                 done();
             });
-            expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Connecting);
+            expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connecting);
         });
 
         it('should reject when a wrong welcome message is returned', (done) => {
@@ -143,10 +144,10 @@ describe('ClientImpl', () => {
                 client.socket.emit('data', 'NotWelcome:5\r\n');
             });
 
-            expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+            expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             client.connect().catch((err) => {
                 expect(err.message).to.equal('Unexpected Message returned: NotWelcome:5\r\n');
-                expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
                 expect(connectStub).to.have.been.calledOnce;
                 expect(writeStub).to.have.been.calledOnce;
                 expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
@@ -154,7 +155,7 @@ describe('ClientImpl', () => {
                 writeStub.restore();
                 done();
             });
-            expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Connecting);
+            expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connecting);
         });
     });
 
@@ -184,12 +185,12 @@ describe('ClientImpl', () => {
                 }
             });
 
-            expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+            expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             return client.connect().then(() => {
                return client.sendPing();
             }).then((res) => {
                 expect(res).to.equal('Echo Received');
-                expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Connected);
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connected);
                 expect(connectStub).to.have.been.calledOnce;
                 expect(writeStub).to.have.been.calledTwice;
                 expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
@@ -202,7 +203,7 @@ describe('ClientImpl', () => {
         it('should reject if client is not connected', () => {
             return client.sendPing().catch((err) => {
                 expect(err.message).to.equal('Not Connected');
-                expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             });
         });
 
@@ -224,12 +225,12 @@ describe('ClientImpl', () => {
                 }
             });
 
-            expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+            expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             return client.connect().then(() => {
                 return client.sendPing();
             }).catch((err) => {
                 expect(err.message).to.equal('send error');
-                expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
                 expect(connectStub).to.have.been.calledOnce;
                 expect(writeStub).to.have.been.calledTwice;
                 expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
@@ -256,12 +257,12 @@ describe('ClientImpl', () => {
                 }
             });
 
-            expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+            expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             return client.connect().then(() => {
                 return client.sendPing();
             }).catch((err) => {
                 expect(err.message).to.equal('Unexpected Message returned: NotEcho:\r\n');
-                expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Connected);
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connected);
                 expect(connectStub).to.have.been.calledOnce;
                 expect(writeStub).to.have.been.calledTwice;
                 expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
@@ -307,7 +308,7 @@ describe('ClientImpl', () => {
                 let date = new Date('11/10/2017 7:52:40 AM');
                 expect(res).to.equalDate(date);
                 expect(client.lastUpdate).to.equalDate(date);
-                expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Connected);
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connected);
                 expect(connectStub).to.have.been.calledOnce;
                 expect(writeStub).to.have.been.calledTwice;
                 expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
@@ -319,7 +320,7 @@ describe('ClientImpl', () => {
         it('should reject if client is not connected', () => {
             return client.sendLastUpdate().catch((err) => {
                 expect(err.message).to.equal('Not Connected');
-                expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             });
         });
 
@@ -338,7 +339,7 @@ describe('ClientImpl', () => {
                 return client.sendLastUpdate();
             }).catch((err) => {
                 expect(err.message).to.equal('send error');
-                expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
                 expect(connectStub).to.have.been.calledOnce;
                 expect(writeStub).to.have.been.calledTwice;
                 expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
@@ -361,7 +362,7 @@ describe('ClientImpl', () => {
                 return client.sendLastUpdate();
             }).catch((err) => {
                 expect(err.message).to.equal('Unexpected Message returned: NotLastUpdate:\r\n');
-                expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Connected);
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connected);
                 expect(connectStub).to.have.been.calledOnce;
                 expect(writeStub).to.have.been.calledTwice;
                 expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
@@ -418,11 +419,11 @@ describe('ClientImpl', () => {
 
             return client.connect().then(() => {
                 return client.sendScore();
-            }).then((res:FLLScoreClient.ScoreInfo) => {
+            }).then((res:FLLScoreClient.IScoreInfo) => {
                 expect(res.scheduleInfo).not.to.be.undefined;
                 expect(res.teamInfo).not.to.be.undefined;
                 expect(res.teamInfo.length).to.equal(12);
-                expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Connected);
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connected);
                 expect(connectStub).to.have.been.calledOnce;
                 expect(writeStub).to.have.been.calledTwice;
                 expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
@@ -463,11 +464,11 @@ describe('ClientImpl', () => {
 
             return client.connect().then(() => {
                 return client.sendScore();
-            }).then((res:FLLScoreClient.ScoreInfo) => {
+            }).then((res:FLLScoreClient.IScoreInfo) => {
                 expect(res.scheduleInfo).not.to.be.undefined;
                 expect(res.teamInfo).not.to.be.undefined;
                 expect(res.teamInfo.length).to.equal(12);
-                expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Connected);
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connected);
                 expect(connectStub).to.have.been.calledOnce;
                 expect(writeStub).to.have.been.calledTwice;
                 expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
@@ -479,7 +480,7 @@ describe('ClientImpl', () => {
         it('should reject if client is not connected', () => {
             return client.sendScore().catch((err) => {
                 expect(err.message).to.equal('Not Connected');
-                expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             });
         });
 
@@ -498,7 +499,7 @@ describe('ClientImpl', () => {
                 return client.sendScore();
             }).catch((err) => {
                 expect(err.message).to.equal('send error');
-                expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
                 expect(connectStub).to.have.been.calledOnce;
                 expect(writeStub).to.have.been.calledTwice;
                 expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
@@ -542,12 +543,12 @@ describe('ClientImpl', () => {
                 client.socket.emit('close', false);
             });
 
-            expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+            expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             return client.connect().then(() => {
-                expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Connected);
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connected);
                 return client.close();
             }).then((res) => {
-                expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
                 expect(res).to.equal('Connection Closed');
                 expect(connectStub).to.have.been.calledOnce;
                 expect(writeStub).to.have.been.calledOnce;
@@ -559,7 +560,7 @@ describe('ClientImpl', () => {
         it('should reject if client is not connected', () => {
             return client.close().catch((err) => {
                 expect(err.message).to.equal('Not Connected');
-                expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             });
         });
 
@@ -569,12 +570,12 @@ describe('ClientImpl', () => {
                 client.socket.emit('close', true);
             });
 
-            expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+            expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             return client.connect().then(() => {
-                expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Connected);
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connected);
                 return client.close();
             }).catch((res) => {
-                expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
                 expect(res.message).to.equal('Closed with error');
                 expect(connectStub).to.have.been.calledOnce;
                 expect(writeStub).to.have.been.calledOnce;
@@ -590,12 +591,12 @@ describe('ClientImpl', () => {
                 client.socket.emit('close', false);
             });
 
-            expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+            expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             return client.connect().then(() => {
-                expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Connected);
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connected);
                 return client.close();
             }).catch((res) => {
-                expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
                 expect(res.message).to.equal('close error');
                 expect(connectStub).to.have.been.calledOnce;
                 expect(writeStub).to.have.been.calledOnce;

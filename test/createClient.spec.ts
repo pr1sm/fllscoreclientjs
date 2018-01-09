@@ -1,6 +1,7 @@
 import { expect } from "chai";
-import { createClient, FLLScoreClient } from "../src";
+import { createClient, FLLScoreClient } from "../src/indexServer";
 import { ClientImpl } from "../src/clientImpl";
+import { FLLScoreClientConstants } from '../src/contants';
 import { Socket } from "net";
 
 describe('createClient', () => {
@@ -10,7 +11,7 @@ describe('createClient', () => {
         expect(client.host).to.equal('localhost');
         expect(client.port).to.equal(25002);
         expect(client.name).to.equal('FLLScoreClient');
-        expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+        expect(client.status).to.equal(0);
         expect(client.lastUpdate).to.be.undefined;
         expect(client.scoreInfo).to.be.undefined;
         expect(client.socket instanceof Socket).to.be.true;
@@ -22,7 +23,7 @@ describe('createClient', () => {
         expect(client.host).to.equal('new-host');
         expect(client.port).to.equal(25002);
         expect(client.name).to.equal('FLLScoreClient');
-        expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+        expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
         expect(client.lastUpdate).to.be.undefined;
         expect(client.scoreInfo).to.be.undefined;
         expect(client.socket instanceof Socket).to.be.true;
@@ -34,7 +35,7 @@ describe('createClient', () => {
         expect(client.host).to.equal('new-host');
         expect(client.port).to.equal(8080);
         expect(client.name).to.equal('FLLScoreClient');
-        expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+        expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
         expect(client.lastUpdate).to.be.undefined;
         expect(client.scoreInfo).to.be.undefined;
         expect(client.socket instanceof Socket).to.be.true;
@@ -46,7 +47,7 @@ describe('createClient', () => {
         expect(client.host).to.equal('new-host');
         expect(client.port).to.equal(8080);
         expect(client.name).to.equal('new-name');
-        expect(client.status).to.equal(FLLScoreClient.ConnectionStatus.Disconnected);
+        expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
         expect(client.lastUpdate).to.be.undefined;
         expect(client.scoreInfo).to.be.undefined;
         expect(client.socket instanceof Socket).to.be.true;
