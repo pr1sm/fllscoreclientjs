@@ -372,6 +372,9 @@ class WebProxy {
             this.name = opts.name || this.name;
             this.useWatchdog = opts.useWatchdog || this.useWatchdog;
         }
+        if (this.port === this.servePort) {
+            this.servePort = this.port + 1;
+        }
         this.fllclient = index_1.createClient({
             host: this.host,
             name: this.name,
@@ -432,7 +435,7 @@ class WebProxy {
     startProxy() {
         return new Promise((resolve) => {
             this.fllclient.connect().then(() => {
-                this.server.listen(this.fllclient.port + 1);
+                this.server.listen(this.servePort);
                 resolve(true);
             }).catch(() => {
                 resolve(false);

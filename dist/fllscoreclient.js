@@ -4299,7 +4299,6 @@ class WebClient extends events_1.EventEmitter {
             if (this.lastUpdate === undefined) {
                 this.socket.emit('sendLastUpdate', 'please', (res) => {
                     if (!isNaN(Date.parse(res))) {
-                        console.log('getLastUpdate: ' + res);
                         this.lastUpdate = new Date(res);
                         resolve(this.lastUpdate);
                     }
