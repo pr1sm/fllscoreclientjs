@@ -97,8 +97,8 @@ export class Client implements FLLScoreClient.IClient {
         });
     }
 
-    public sendLastUpdate(): Promise<Date> {
-        return new Promise<Date>((resolve, reject) => {
+    public sendLastUpdate(): Promise<boolean> {
+        return new Promise<boolean>((resolve, reject) => {
             if (this.status !== FLLScoreClientConstants.ConnectionStatus.Connected) {
                 reject(new Error('Not Connected'));
             }
@@ -111,8 +111,13 @@ export class Client implements FLLScoreClient.IClient {
                 if (FLLScoreClientConstants.LAST_UPDATE.test(data.toString())) {
                     const raw = data.toString().trim();
                     const response = raw.substring(raw.indexOf(':') + 1);
-                    this.lastUpdate = new Date(response);
-                    resolve(this.lastUpdate);
+                    const newDate = new Date(response);
+                    if (this.lastUpdate === undefined || newDate.getTime() > this.lastUpdate.getTime()) {
+                        this.lastUpdate = newDate;
+                        resolve(true);
+                    } else {
+                        resolve(false);
+                    }
                 } else {
                     reject(new Error('Unexpected Message returned: ' + data));
                 }

@@ -4,7 +4,7 @@ client.on('lastUpdate', (date) => {
     console.log(date);
 });
 
-client.on('sendScore', (info) => {
+client.on('scoreInfo', (info) => {
     console.log(info);
 });
 

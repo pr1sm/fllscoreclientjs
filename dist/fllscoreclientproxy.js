@@ -196,8 +196,14 @@ class Client {
                 if (FLLScoreClientConstants.LAST_UPDATE.test(data.toString())) {
                     const raw = data.toString().trim();
                     const response = raw.substring(raw.indexOf(':') + 1);
-                    this.lastUpdate = new Date(response);
-                    resolve(this.lastUpdate);
+                    const newDate = new Date(response);
+                    if (this.lastUpdate === undefined || newDate.getTime() > this.lastUpdate.getTime()) {
+                        this.lastUpdate = newDate;
+                        resolve(true);
+                    }
+                    else {
+                        resolve(false);
+                    }
                 }
                 else {
                     reject(new Error('Unexpected Message returned: ' + data));
@@ -361,12 +367,14 @@ const index_1 = __webpack_require__(0);
 class WebProxy {
     constructor(opts) {
         this.host = 'localhost';
+        this.infoPollingRate = 30;
         this.port = 25002;
         this.servePort = 25003;
         this.name = 'FLLScoreClient';
         this.useWatchdog = true;
         if (opts !== undefined) {
             this.host = opts.host || this.host;
+            this.infoPollingRate = opts.infoPollingRate || this.infoPollingRate;
             this.port = opts.port || this.port;
             this.servePort = opts.servePort || this.servePort;
             this.name = opts.name || this.name;
@@ -383,9 +391,6 @@ class WebProxy {
         });
         this.server = io();
         this.server.on('connection', (client) => {
-            this.fllclient.socket.on('data', (data) => {
-                console.log('Received:\n\t' + data.toString().trim());
-            });
             if (this.fllclient.lastUpdate !== undefined) {
                 client.emit('lastUpdate', this.fllclient.lastUpdate.toISOString());
             }
@@ -398,9 +403,9 @@ class WebProxy {
                         cb(this.fllclient.lastUpdate.toISOString());
                     }
                     else {
-                        this.fllclient.sendLastUpdate().then((date) => {
-                            client.emit('lastUpdate', date.toISOString());
-                            cb(date.toISOString());
+                        this.fllclient.sendLastUpdate().then(() => {
+                            client.emit('lastUpdate', this.fllclient.lastUpdate.toISOString());
+                            cb(this.fllclient.lastUpdate.toISOString());
                         }).catch((err) => {
                             // TODO: Deal with this error
                             console.log(err);
@@ -435,6 +440,27 @@ class WebProxy {
     startProxy() {
         return new Promise((resolve) => {
             this.fllclient.connect().then(() => {
+                this.fllclient.socket.on('data', (data) => {
+                    console.log('Received:\n\t' + data.toString().trim());
+                });
+                this.pollTest = setInterval(() => {
+                    this.fllclient.sendLastUpdate().then((updated) => {
+                        if (updated) {
+                            return this.fllclient.sendScore();
+                        }
+                        else {
+                            return Promise.resolve(undefined);
+                        }
+                    }).then((info) => {
+                        if (info !== undefined) {
+                            this.server.emit('lastUpdate', this.fllclient.lastUpdate);
+                            this.server.emit('scoreInfo', info);
+                        }
+                    }).catch((err) => {
+                        // TODO: Deal with error
+                        console.log(err);
+                    });
+                }, this.infoPollingRate * 1000);
                 this.server.listen(this.servePort);
                 resolve(true);
             }).catch(() => {

@@ -33,7 +33,7 @@ export declare namespace FLLScoreClient {
 
         connect(): Promise<string>;
         sendPing(): Promise<string>;
-        sendLastUpdate(): Promise<Date>;
+        sendLastUpdate(): Promise<boolean>;
         sendScore(): Promise<IScoreInfo>;
         close(): Promise<string>;
     }
@@ -54,6 +54,7 @@ export declare namespace FLLScoreClient {
 
     export interface IWebProxyOpts {
         host?: string;
+        infoPollingRate?: number;
         name?: string;
         port?: number;
         servePort?: number;

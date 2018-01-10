@@ -1,3 +1,4 @@
+import datetime
 import socket
 import threading
 import time
@@ -12,6 +13,7 @@ class ClientHandlerThread(threading.Thread):
         self._client_socket = client_socket
         self._client_addr = client_addr
         self._client_name = '---'
+        self._client_time = datetime.datetime.now()
 
     def stop(self):
         self._stop_event.set()
@@ -90,8 +92,11 @@ class ClientHandlerThread(threading.Thread):
             self._client_socket.send('Score Done:\r\n')
 
         elif command == 'Send Last Update':
-            self._client_socket.send('Last Update:11/10/2017 7:52:40 AM\r\n')
+            _now = datetime.datetime.now()
+            if(_now.minute != self._client_time.minute) :
+                self._client_time = _now
 
+            self._client_socket.send('Last Update:{}\r\n'.format(self._client_time.strftime('%m/%d/%Y %I:%M:%S %p')))
         else:
             self._client_socket.send('invalid command\r\n')
 

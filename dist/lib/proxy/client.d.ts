@@ -15,7 +15,7 @@ export declare class Client implements FLLScoreClient.IClient {
     constructor(opts?: FLLScoreClient.IClientOpts);
     connect(): Promise<string>;
     sendPing(): Promise<string>;
-    sendLastUpdate(): Promise<Date>;
+    sendLastUpdate(): Promise<boolean>;
     sendScore(): Promise<FLLScoreClient.IScoreInfo>;
     close(): Promise<string>;
     private resetConnectionTest();
