@@ -3,6 +3,8 @@ import * as FLLScoreClientConstants from '../constants';
 import {FLLScoreClient} from '../shared/interface';
 import Timer = NodeJS.Timer;
 
+type DataCallback = (str: string) => void;
+
 export class Client implements FLLScoreClient.IClient {
 
     public host: string = 'localhost';
@@ -16,6 +18,8 @@ export class Client implements FLLScoreClient.IClient {
     private useWatchdog: boolean = true;
     private watchdogInterval: number;
     private connTest?: Timer;
+    private callbackQueues: Map<string, DataCallback[]>;
+    private messageBuffer: string;
 
     constructor(opts?: FLLScoreClient.IClientOpts) {
         if (opts !== undefined) {
@@ -32,6 +36,14 @@ export class Client implements FLLScoreClient.IClient {
         this.connTest = undefined;
         this.watchdogInterval = 5;
 
+        this.callbackQueues = new Map<string, DataCallback[]>();
+        this.callbackQueues.set('welcome', []);
+        this.callbackQueues.set('echo', []);
+        this.callbackQueues.set('lastUpdate', []);
+        this.callbackQueues.set('scoreHeader', []);
+        this.callbackQueues.set('score', []);
+        this.callbackQueues.set('scoreDone', []);
+
         this.socket.on('close', () => {
             this.status = FLLScoreClientConstants.ConnectionStatus.Disconnected;
             if (this.connTest !== undefined) {
@@ -40,9 +52,78 @@ export class Client implements FLLScoreClient.IClient {
             this.connTest = undefined;
             this.watchdogInterval = 5;
         });
+
+        this. messageBuffer = '';
+        this.socket.on('data', (data) => {
+            let message = data.toString();
+
+            // Check for incomplete message, push that onto the buffer and process the rest (if there are any)
+            if (!message.endsWith('\r\n')) {
+                const lastLine = message.lastIndexOf('\r\n');
+
+                if (lastLine === -1) {
+                    // did not find last line, push entire message and wait for more
+                    this.messageBuffer += message;
+                    return;
+                } else {
+                    // 1. capture incomplete line,
+                    // 2. set message to be the buffer + all complete lines,
+                    // 3. set the buffer to the incomplete line.
+                    const incompleteLine = message.substring(lastLine + 2);
+                    message = this.messageBuffer + message.substring(0, lastLine + 2);
+                    this.messageBuffer = incompleteLine;
+                }
+            }
+
+            // Nothing to process, return
+            if (message.length === 0) {
+                return;
+            }
+
+            // Split message into valid commands
+            const split = message.trim().split('\r\n');
+
+            // Process each command
+
+            const regexMap: Map<string, RegExp> = new Map<string, RegExp>([
+                ['welcome', FLLScoreClientConstants.WELCOME],
+                ['echo', FLLScoreClientConstants.ECHO],
+                ['lastUpdate', FLLScoreClientConstants.LAST_UPDATE],
+                ['scoreHeader', FLLScoreClientConstants.SCORE_HEADER],
+                ['score', FLLScoreClientConstants.SCORE],
+                ['scoreDone', FLLScoreClientConstants.SCORE_DONE],
+            ]);
+
+            split.forEach((line) => {
+                let processed = false;
+                regexMap.forEach((val, key) => {
+                    if (processed) {
+                        return;
+                    }
+
+                    if (val.test(line)) {
+                        processed = true;
+                        const arr = this.callbackQueues.get(key);
+                        if (arr !== undefined) {
+                            const cb = arr.shift();
+                            if (cb !== undefined) {
+                                cb(line);
+                            }
+                        }
+                    }
+                });
+
+                if (!processed) {
+                    console.log('WARNING: Line: ' + line + ' was not processed');
+                }
+            });
+        });
     }
 
     public connect(): Promise<string> {
+
+        this.status = FLLScoreClientConstants.ConnectionStatus.Connecting;
+
         return new Promise<string>((resolve, reject) => {
             this.status = FLLScoreClientConstants.ConnectionStatus.Connecting;
 
@@ -52,24 +133,24 @@ export class Client implements FLLScoreClient.IClient {
                 reject(new Error('Timeout'));
             }, 50);
 
-            this.socket.once('data', (data) =>  {
-                if (FLLScoreClientConstants.WELCOME.test(data.toString())) {
-                    const raw = data.toString().trim();
-                    this.watchdogInterval = parseInt(raw.substring(raw.indexOf(':') + 1), 10);
-                    this.resetConnectionTest();
-                    resolve('Connected');
-                } else {
-                    this.status = FLLScoreClientConstants.ConnectionStatus.Disconnected;
-                    reject(new Error('Unexpected Message returned: ' + data));
-                }
-            });
-
             this.socket.connect({
                 host: this.host,
                 port: this.port,
             }, () => {
-                clearTimeout(to);
                 this.status = FLLScoreClientConstants.ConnectionStatus.Connected;
+                this.pushCallback('welcome', (data: string) => {
+                    if (FLLScoreClientConstants.WELCOME.test(data.toString())) {
+                        const raw = data.toString().trim();
+                        this.watchdogInterval = parseInt(raw.substring(raw.indexOf(':') + 1), 10);
+                        this.resetConnectionTest();
+                        clearTimeout(to);
+                        resolve('Connected');
+                    } else {
+                        this.status = FLLScoreClientConstants.ConnectionStatus.Disconnected;
+                        clearTimeout(to);
+                        reject(new Error('Unexpected Message returned: ' + data));
+                    }
+                });
                 this.socket.write('FLLScore:' + this.name + '|Primary\r\n');
             });
         });
@@ -86,11 +167,12 @@ export class Client implements FLLScoreClient.IClient {
                 reject(new Error('Timeout'));
             }, 50);
 
-            this.socket.once('data', (data) => {
+            this.pushCallback('echo', (data: string) => {
                 if (FLLScoreClientConstants.ECHO.test(data.toString())) {
                     clearTimeout(to);
                     resolve('Echo Received');
                 } else {
+                    clearTimeout(to);
                     reject(new Error('Unexpected Message returned: ' + data));
                 }
             });
@@ -112,7 +194,7 @@ export class Client implements FLLScoreClient.IClient {
                 reject(new Error('Timeout'));
             }, 50);
 
-            this.socket.once('data', (data) => {
+            this.pushCallback('lastUpdate', (data: string) => {
                 if (FLLScoreClientConstants.LAST_UPDATE.test(data.toString())) {
                     const raw = data.toString().trim();
                     const response = raw.substring(raw.indexOf(':') + 1);
@@ -125,6 +207,7 @@ export class Client implements FLLScoreClient.IClient {
                         resolve(false);
                     }
                 } else {
+                    clearTimeout(to);
                     reject(new Error('Unexpected Message returned: ' + data));
                 }
             });
@@ -138,48 +221,50 @@ export class Client implements FLLScoreClient.IClient {
     public sendScore(): Promise<FLLScoreClient.IScoreInfo> {
         return new Promise<FLLScoreClient.IScoreInfo>((resolve, reject) => {
 
-            let intermediateData = '';
             let scheduleInfo: FLLScoreClient.IScheduleInfo;
             const teamInfo: FLLScoreClient.ITeamInfo[] = [];
-            const sendScoreDataHandler = (data: Buffer|string) => {
-                let raw = data.toString();
 
-                if (!raw.endsWith('\r\n')) {
-                    intermediateData += raw;
-                    return;
-                } else {
-                    raw = intermediateData + raw;
-                    intermediateData = '';
-                }
-
-                const split = raw.trim().split('\r\n');
-
-                split.forEach((value) => {
-                    if (FLLScoreClientConstants.SCORE_DONE.test(value)) {
-                        this.socket.removeListener('data', sendScoreDataHandler);
-                        this.scoreInfo = { scheduleInfo, teamInfo };
-                        clearTimeout(to);
-                        resolve(this.scoreInfo);
-                    } else if (FLLScoreClientConstants.SCORE_HEADER.test(value)) {
-                        const content = value.substring(value.indexOf(':') + 1).split('|');
-                        scheduleInfo = {
-                            lastUpdate: new Date(content[0]),
-                            numberOfCompletedMatches: parseInt(content[3], 10),
-                            numberOfMatches: parseInt(content[2], 10),
-                            numberOfTeams: parseInt(content[1], 10),
-                        };
-                    } else if (FLLScoreClientConstants.SCORE.test(value)) {
-                        const content = value.substring(value.indexOf(':') + 1).split('|');
-                        teamInfo.push({
-                            highScore: parseInt(content[2], 10),
-                            name: content[1],
-                            number: parseInt(content[0], 10),
-                            scores: [parseInt(content[3], 10), parseInt(content[4], 10), parseInt(content[5], 10)],
-                        });
-                    } else {
-                        // TODO: Deal with invalid command
+            const scoreDoneCallback = (value: string) => {
+                const teamDiff = scheduleInfo.numberOfTeams - teamInfo.length;
+                if (teamDiff > 0) {
+                    console.log('WARNING: only received ' +
+                        teamInfo.length + '/' + scheduleInfo.numberOfTeams + ' teams!');
+                    const arr = this.callbackQueues.get('score');
+                    if (arr !== undefined) {
+                        arr.splice(0, teamDiff);
                     }
+                }
+                this.scoreInfo = { scheduleInfo, teamInfo };
+                clearTimeout(to);
+                resolve(this.scoreInfo);
+            };
+
+            const scoreCallback = (value: string) => {
+                const content = value.substring(value.indexOf(':') + 1).split('|');
+                teamInfo.push({
+                    highScore: parseInt(content[2], 10),
+                    name: content[1],
+                    number: parseInt(content[0], 10),
+                    scores: [
+                        parseInt(content[3], 10),
+                        parseInt(content[4], 10),
+                        parseInt(content[5], 10),
+                    ],
                 });
+            };
+
+            const scoreHeaderCallback = (value: string) => {
+                const content = value.substring(value.indexOf(':') + 1).split('|');
+                scheduleInfo = {
+                    lastUpdate: new Date(content[0]),
+                    numberOfCompletedMatches: parseInt(content[3], 10),
+                    numberOfMatches: parseInt(content[2], 10),
+                    numberOfTeams: parseInt(content[1], 10),
+                };
+
+                for (let i = 0; i < scheduleInfo.numberOfTeams; i++) {
+                    this.pushCallback('score', scoreCallback);
+                }
             };
 
             if (this.status !== FLLScoreClientConstants.ConnectionStatus.Connected) {
@@ -191,7 +276,8 @@ export class Client implements FLLScoreClient.IClient {
                 reject(new Error('Timeout'));
             }, 50);
 
-            this.socket.on('data', sendScoreDataHandler);
+            this.pushCallback('scoreHeader', scoreHeaderCallback);
+            this.pushCallback('scoreDone', scoreDoneCallback);
 
             this.socket.write('Send Score:\r\n', () => {
                 this.resetConnectionTest();
@@ -221,6 +307,13 @@ export class Client implements FLLScoreClient.IClient {
 
             this.socket.end();
         });
+    }
+
+    private pushCallback(key: string, cb: DataCallback): void {
+        const arr = this.callbackQueues.get(key);
+        if (arr !== undefined) {
+            arr.push(cb);
+        }
     }
 
     private resetConnectionTest(): void {

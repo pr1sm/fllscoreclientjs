@@ -12,11 +12,14 @@ export declare class Client implements FLLScoreClient.IClient {
     private useWatchdog;
     private watchdogInterval;
     private connTest?;
+    private callbackQueues;
+    private messageBuffer;
     constructor(opts?: FLLScoreClient.IClientOpts);
     connect(): Promise<string>;
     sendPing(): Promise<string>;
     sendLastUpdate(): Promise<boolean>;
     sendScore(): Promise<FLLScoreClient.IScoreInfo>;
     close(): Promise<string>;
+    private pushCallback(key, cb);
     private resetConnectionTest();
 }

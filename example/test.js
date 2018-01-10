@@ -1,5 +1,5 @@
-// var fllScoreClient = require('fllscoreclient'); // Published version
-var fllScoreClient = require('../dist/fllscoreclient'); // Uncomment for dev version
+// var fllScoreClient = require('fllscoreclientproxy'); // Published version
+var fllScoreClient = require('../dist/fllscoreclientproxy'); // Uncomment for dev version
 
 var client = fllScoreClient.createClient({host: 'localhost', port: 8100});
 
@@ -10,7 +10,11 @@ client.connect().then(function(res) {
     console.log(res);
     return client.sendLastUpdate();
 }).then(function(res) {
-    console.log(res.toString());
+    if (res) {
+        console.log('Update is necessary');
+    } else {
+        console.log('No Update Needed');
+    }
     console.log(client.lastUpdate.toISOString());
     return new Promise(function (resolve) {
         setTimeout(resolve, 5000);
@@ -21,7 +25,12 @@ client.connect().then(function(res) {
     console.log(JSON.stringify(res));
     return client.sendLastUpdate();
 }).then(function(res) {
-    console.log(res.toString());
+    if (res) {
+        console.log('Update is necessary');
+    } else {
+        console.log('No Update Needed');
+    }
+    console.log(client.lastUpdate.toISOString());
     return client.close();
 }).then(function(res) {
     console.log(res);
