@@ -1,6 +1,6 @@
 {
   "name": "fllscoreclient",
-  "version": "0.10.0",
+  "version": "0.11.0",
   "description": "An implementation of the FLL Score Client Protocol.",
   "main": "dist/fllscoreclient.js",
   "types": "dist/lib/index.d.ts",
