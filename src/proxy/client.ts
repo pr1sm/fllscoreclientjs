@@ -46,10 +46,11 @@ export class Client implements FLLScoreClient.IClient {
         return new Promise<string>((resolve, reject) => {
             this.status = FLLScoreClientConstants.ConnectionStatus.Connecting;
 
-            this.socket.once('error', (err) => {
+            const to = setTimeout(() => {
+                clearTimeout(to);
                 this.status = FLLScoreClientConstants.ConnectionStatus.Disconnected;
-                reject(err);
-            });
+                reject(new Error('Timeout'));
+            }, 50);
 
             this.socket.once('data', (data) =>  {
                 if (FLLScoreClientConstants.WELCOME.test(data.toString())) {
@@ -67,6 +68,7 @@ export class Client implements FLLScoreClient.IClient {
                 host: this.host,
                 port: this.port,
             }, () => {
+                clearTimeout(to);
                 this.status = FLLScoreClientConstants.ConnectionStatus.Connected;
                 this.socket.write('FLLScore:' + this.name + '|Primary\r\n');
             });
@@ -79,12 +81,14 @@ export class Client implements FLLScoreClient.IClient {
                 reject(new Error('Not Connected'));
             }
 
-            this.socket.once('error', (err) => {
-                reject(err);
-            });
+            const to = setTimeout(() => {
+                clearTimeout(to);
+                reject(new Error('Timeout'));
+            }, 50);
 
             this.socket.once('data', (data) => {
                 if (FLLScoreClientConstants.ECHO.test(data.toString())) {
+                    clearTimeout(to);
                     resolve('Echo Received');
                 } else {
                     reject(new Error('Unexpected Message returned: ' + data));
@@ -103,15 +107,17 @@ export class Client implements FLLScoreClient.IClient {
                 reject(new Error('Not Connected'));
             }
 
-            this.socket.once('error', (err) => {
-                reject(err);
-            });
+            const to = setTimeout(() => {
+                clearTimeout(to);
+                reject(new Error('Timeout'));
+            }, 50);
 
             this.socket.once('data', (data) => {
                 if (FLLScoreClientConstants.LAST_UPDATE.test(data.toString())) {
                     const raw = data.toString().trim();
                     const response = raw.substring(raw.indexOf(':') + 1);
                     const newDate = new Date(response);
+                    clearTimeout(to);
                     if (this.lastUpdate === undefined || newDate.getTime() > this.lastUpdate.getTime()) {
                         this.lastUpdate = newDate;
                         resolve(true);
@@ -152,6 +158,7 @@ export class Client implements FLLScoreClient.IClient {
                     if (FLLScoreClientConstants.SCORE_DONE.test(value)) {
                         this.socket.removeListener('data', sendScoreDataHandler);
                         this.scoreInfo = { scheduleInfo, teamInfo };
+                        clearTimeout(to);
                         resolve(this.scoreInfo);
                     } else if (FLLScoreClientConstants.SCORE_HEADER.test(value)) {
                         const content = value.substring(value.indexOf(':') + 1).split('|');
@@ -179,9 +186,10 @@ export class Client implements FLLScoreClient.IClient {
                 reject(new Error('Not Connected'));
             }
 
-            this.socket.once('error', (err) => {
-                reject(err);
-            });
+            const to = setTimeout(() => {
+                clearTimeout(to);
+                reject(new Error('Timeout'));
+            }, 50);
 
             this.socket.on('data', sendScoreDataHandler);
 
@@ -197,14 +205,16 @@ export class Client implements FLLScoreClient.IClient {
                 reject(new Error('Not Connected'));
             }
 
-            this.socket.once('error', (err) => {
-                reject(err);
-            });
+            const to = setTimeout(() => {
+                clearTimeout(to);
+                reject(new Error('Timeout'));
+            }, 50);
 
             this.socket.once('close', (hadError) => {
                 if (hadError) {
                     reject(new Error('Closed with error'));
                 } else {
+                    clearTimeout(to);
                     resolve('Connection Closed');
                 }
             });
