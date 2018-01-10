@@ -32,17 +32,16 @@ export declare namespace FLLScoreClient {
         socket: Socket;
 
         connect(): Promise<string>;
-
         sendPing(): Promise<string>;
-
         sendLastUpdate(): Promise<Date>;
-
         sendScore(): Promise<IScoreInfo>;
-
         close(): Promise<string>;
     }
 
     export interface IWebClient extends EventEmitter {
         socket: SocketIOClient.Socket;
+
+        getLastUpdate(): Promise<Date>
+        getScoreInfo(): Promise<IScoreInfo>
     }
 }
