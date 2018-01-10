@@ -1,8 +1,8 @@
-var fllScoreClient = require('../dist/fllscoreclientproxy'); // Uncomment for dev version
+var fllScoreProxy = require('../dist/fllscoreclientproxy'); // Uncomment for dev version
 
-var server = fllScoreClient.createWebServer('localhost', 8100);
+var server = fllScoreProxy.createWebProxy({host: 'localhost', port: 8100, servePort: 8101});
 
-server.startServer().then((res) => {
+server.startProxy().then((res) => {
     if (res) {
         console.log('Server Started...');
     } else {

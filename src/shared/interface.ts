@@ -23,13 +23,13 @@ export declare namespace FLLScoreClient {
     }
 
     export interface IClient {
-        host: string;
-        name: string;
-        port: number;
-        lastUpdate?: Date;
-        scoreInfo?: IScoreInfo;
-        status: number;
-        socket: Socket;
+        readonly host: string;
+        readonly name: string;
+        readonly port: number;
+        readonly lastUpdate?: Date;
+        readonly scoreInfo?: IScoreInfo;
+        readonly status: number;
+        readonly socket: Socket;
 
         connect(): Promise<string>;
         sendPing(): Promise<string>;
@@ -38,10 +38,25 @@ export declare namespace FLLScoreClient {
         close(): Promise<string>;
     }
 
+    export interface IClientOpts {
+        host?: string;
+        name?: string;
+        port?: number;
+        useWatchdog?: boolean;
+    }
+
     export interface IWebClient extends EventEmitter {
-        socket: SocketIOClient.Socket;
+        readonly socket: SocketIOClient.Socket;
 
         getLastUpdate(): Promise<Date>
         getScoreInfo(): Promise<IScoreInfo>
+    }
+
+    export interface IWebProxyOpts {
+        host?: string;
+        name?: string;
+        port?: number;
+        servePort?: number;
+        useWatchdog?: boolean;
     }
 }

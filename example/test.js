@@ -1,7 +1,7 @@
-var fllScoreClient = require('fllscoreclient'); // Published version
-// val fllScoreClient = require('../dist/fllscoreclient'); // Uncomment for dev version
+// var fllScoreClient = require('fllscoreclient'); // Published version
+var fllScoreClient = require('../dist/fllscoreclient'); // Uncomment for dev version
 
-var client = fllScoreClient.createClient('localhost', 8100);
+var client = fllScoreClient.createClient({host: 'localhost', port: 8100});
 
 client.connect().then(function(res) {
     console.log(res);
@@ -13,7 +13,7 @@ client.connect().then(function(res) {
     console.log(res.toString());
     console.log(client.lastUpdate.toISOString());
     return new Promise(function (resolve) {
-        setTimeout(resolve, 20000);
+        setTimeout(resolve, 5000);
     });
 }).then(function() {
     return client.sendScore();

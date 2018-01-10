@@ -2,23 +2,35 @@ import * as io from 'socket.io';
 import {FLLScoreClient} from '../shared/interface';
 import {createClient} from './index';
 
-export class WebServer {
-    public host: string = 'localhost';
-    public port: number = 25002;
-    public name: string = 'FLLScoreClient';
+export class WebProxy {
+    public readonly host: string = 'localhost';
+    public readonly port: number = 25002;
+    public readonly servePort: number = 25003;
+    public readonly name: string = 'FLLScoreClient';
 
     private server: SocketIO.Server;
     private fllclient: FLLScoreClient.IClient;
     private useWatchdog: boolean = true;
 
-    constructor(host: string = 'localhost', port: number = 25002,
-                name: string = 'FLLScoreClient', useWatchdog: boolean = true) {
-        this.host = host;
-        this.port = port;
-        this.name = name;
-        this.useWatchdog = useWatchdog;
+    constructor(opts?: FLLScoreClient.IWebProxyOpts) {
+        if (opts !== undefined) {
+            this.host = opts.host || this.host;
+            this.port = opts.port || this.port;
+            this.servePort = opts.servePort || this.servePort;
+            this.name = opts.name || this.name;
+            this.useWatchdog = opts.useWatchdog || this.useWatchdog;
+        }
 
-        this.fllclient = createClient(this.host, this.port, this.name, this.useWatchdog);
+        if (this.port === this.servePort) {
+            this.servePort = this.port + 1;
+        }
+
+        this.fllclient = createClient({
+            host: this.host,
+            name: this.name,
+            port: this.port,
+            useWatchdog: this.useWatchdog,
+        });
 
         this.server = io();
         this.server.on('connection', (client: SocketIO.Socket) => {
@@ -72,10 +84,10 @@ export class WebServer {
         });
     }
 
-    public startServer(): Promise<boolean> {
+    public startProxy(): Promise<boolean> {
         return new Promise<boolean>((resolve) => {
             this.fllclient.connect().then(() => {
-                this.server.listen(this.fllclient.port + 1);
+                this.server.listen(this.servePort);
                 resolve(true);
             }).catch(() => {
                 resolve(false);

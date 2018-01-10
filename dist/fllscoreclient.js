@@ -4257,10 +4257,10 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const events_1 = __webpack_require__(31);
 const io = __webpack_require__(32);
 class WebClient extends events_1.EventEmitter {
-    constructor(host = 'localhost', port = 25002) {
+    constructor(host = 'localhost', port = 25003) {
         super();
         this.host = 'localhost';
-        this.port = 25002;
+        this.port = 25003;
         this.host = host;
         this.port = port;
         this.lastUpdate = undefined;

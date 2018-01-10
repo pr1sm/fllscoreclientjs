@@ -12,7 +12,7 @@ export declare class Client implements FLLScoreClient.IClient {
     private useWatchdog;
     private watchdogInterval;
     private connTest?;
-    constructor(host?: string, port?: number, name?: string, useWatchdog?: boolean);
+    constructor(opts?: FLLScoreClient.IClientOpts);
     connect(): Promise<string>;
     sendPing(): Promise<string>;
     sendLastUpdate(): Promise<Date>;

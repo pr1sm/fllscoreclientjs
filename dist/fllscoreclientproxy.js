@@ -81,15 +81,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = __webpack_require__(2);
-const webServer_1 = __webpack_require__(7);
-function createClient(host, port, name, useWatchdog) {
-    return new client_1.Client(host, port, name, useWatchdog);
+const webProxy_1 = __webpack_require__(7);
+function createClient(opts) {
+    return new client_1.Client(opts);
 }
 exports.createClient = createClient;
-function createWebServer(host, port, name, useWatchdog) {
-    return new webServer_1.WebServer(host, port, name, useWatchdog);
+function createWebProxy(opts) {
+    return new webProxy_1.WebProxy(opts);
 }
-exports.createWebServer = createWebServer;
+exports.createWebProxy = createWebProxy;
 
 
 /***/ }),
@@ -109,18 +109,21 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const net_1 = __webpack_require__(3);
 const FLLScoreClientConstants = __webpack_require__(4);
 class Client {
-    constructor(host = 'localhost', port = 25002, name = 'FLLScoreClient', useWatchdog = true) {
+    constructor(opts) {
         this.host = 'localhost';
         this.port = 25002;
         this.name = 'FLLScoreClient';
-        this.host = host;
-        this.port = port;
-        this.name = name;
+        this.useWatchdog = true;
+        if (opts !== undefined) {
+            this.host = opts.host || this.host;
+            this.port = opts.port || this.port;
+            this.name = opts.name || this.name;
+            this.useWatchdog = opts.useWatchdog !== undefined ? opts.useWatchdog : this.useWatchdog;
+        }
         this.lastUpdate = undefined;
         this.scoreInfo = undefined;
         this.status = FLLScoreClientConstants.ConnectionStatus.Disconnected;
         this.socket = new net_1.Socket();
-        this.useWatchdog = useWatchdog;
         this.connTest = undefined;
         this.watchdogInterval = 5;
         this.socket.on('close', () => {
@@ -355,17 +358,26 @@ exports.LAST_UPDATE = /^Last Update:.+(\r\n)*$/;
 Object.defineProperty(exports, "__esModule", { value: true });
 const io = __webpack_require__(8);
 const index_1 = __webpack_require__(0);
-class WebServer {
-    constructor(host = 'localhost', port = 25002, name = 'FLLScoreClient', useWatchdog = true) {
+class WebProxy {
+    constructor(opts) {
         this.host = 'localhost';
         this.port = 25002;
+        this.servePort = 25003;
         this.name = 'FLLScoreClient';
         this.useWatchdog = true;
-        this.host = host;
-        this.port = port;
-        this.name = name;
-        this.useWatchdog = useWatchdog;
-        this.fllclient = index_1.createClient(this.host, this.port, this.name, this.useWatchdog);
+        if (opts !== undefined) {
+            this.host = opts.host || this.host;
+            this.port = opts.port || this.port;
+            this.servePort = opts.servePort || this.servePort;
+            this.name = opts.name || this.name;
+            this.useWatchdog = opts.useWatchdog || this.useWatchdog;
+        }
+        this.fllclient = index_1.createClient({
+            host: this.host,
+            name: this.name,
+            port: this.port,
+            useWatchdog: this.useWatchdog,
+        });
         this.server = io();
         this.server.on('connection', (client) => {
             this.fllclient.socket.on('data', (data) => {
@@ -417,7 +429,7 @@ class WebServer {
             });
         });
     }
-    startServer() {
+    startProxy() {
         return new Promise((resolve) => {
             this.fllclient.connect().then(() => {
                 this.server.listen(this.fllclient.port + 1);
@@ -428,7 +440,7 @@ class WebServer {
         });
     }
 }
-exports.WebServer = WebServer;
+exports.WebProxy = WebProxy;
 
 
 /***/ }),

@@ -1,5 +1,5 @@
 import { FLLScoreClient } from '../shared/interface';
-import { WebServer } from './webServer';
-declare function createClient(host?: string, port?: number, name?: string, useWatchdog?: boolean): FLLScoreClient.IClient;
-declare function createWebServer(host?: string, port?: number, name?: string, useWatchdog?: boolean): WebServer;
-export { FLLScoreClient, createClient, createWebServer };
+import { WebProxy } from './webProxy';
+declare function createClient(opts?: FLLScoreClient.IClientOpts): FLLScoreClient.IClient;
+declare function createWebProxy(opts?: FLLScoreClient.IWebProxyOpts): WebProxy;
+export { FLLScoreClient, createClient, createWebProxy };

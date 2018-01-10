@@ -13,20 +13,22 @@ export class Client implements FLLScoreClient.IClient {
     public status: number;
     public socket: Socket;
 
-    private useWatchdog: boolean;
+    private useWatchdog: boolean = true;
     private watchdogInterval: number;
     private connTest?: Timer;
 
-    constructor(host: string = 'localhost', port: number = 25002,
-                name: string = 'FLLScoreClient', useWatchdog: boolean = true) {
-        this.host = host;
-        this.port = port;
-        this.name = name;
+    constructor(opts?: FLLScoreClient.IClientOpts) {
+        if (opts !== undefined) {
+            this.host = opts.host || this.host;
+            this.port = opts.port || this.port;
+            this.name = opts.name || this.name;
+            this.useWatchdog = opts.useWatchdog !== undefined ? opts.useWatchdog : this.useWatchdog;
+        }
+
         this.lastUpdate = undefined;
         this.scoreInfo = undefined;
         this.status = FLLScoreClientConstants.ConnectionStatus.Disconnected;
         this.socket = new Socket();
-        this.useWatchdog = useWatchdog;
         this.connTest = undefined;
         this.watchdogInterval = 5;
 

@@ -26,7 +26,7 @@ describe('Client', () => {
         });
 
         it('should construct with host', () => {
-            let client = new Client('new-host');
+            let client = new Client({host: 'new-host'});
 
             expect(client.host).to.equal('new-host');
             expect(client.port).to.equal(25002);
@@ -38,7 +38,7 @@ describe('Client', () => {
         });
 
         it('should construct with host and port', () => {
-            let client = new Client('new-host', 8080);
+            let client = new Client({host: 'new-host', port: 8080});
 
             expect(client.host).to.equal('new-host');
             expect(client.port).to.equal(8080);
@@ -50,7 +50,7 @@ describe('Client', () => {
         });
 
         it('should construct with host, port and name', () => {
-            let client = new Client('new-host', 8080, 'new-name');
+            let client = new Client({host: 'new-host', port: 8080, name: 'new-name'});
 
             expect(client.host).to.equal('new-host');
             expect(client.port).to.equal(8080);
@@ -68,7 +68,7 @@ describe('Client', () => {
         let writeStub;
 
         beforeEach(() => {
-            client = new Client('localhost', 25002, 'UnitTest', false);
+            client = new Client({host: 'localhost', port: 25002, name: 'UnitTest', useWatchdog: false});
         });
 
         it('should resolve on successful connect', (done) => {
@@ -165,7 +165,7 @@ describe('Client', () => {
         let writeStub;
 
         beforeEach(() => {
-            client = new Client('localhost', 25002, 'UnitTest', false);
+            client = new Client({host: 'localhost', port: 25002, name: 'UnitTest', useWatchdog: false});
         });
 
         it('should resolve on successful ping', () => {
@@ -279,7 +279,7 @@ describe('Client', () => {
         let writeStub;
 
         beforeEach(() => {
-            client = new Client('localhost', 25002, 'UnitTest', false);
+            client = new Client({host: 'localhost', port: 25002, name: 'UnitTest', useWatchdog: false});
             connectStub = sinon.stub(client.socket, 'connect');
             connectStub.callsFake((options, cb) => {
                 expect(options.port).to.equal(25002);
@@ -378,7 +378,7 @@ describe('Client', () => {
         let writeStub;
 
         beforeEach(() => {
-            client = new Client('localhost', 25002, 'UnitTest', false);
+            client = new Client({host: 'localhost', port: 25002, name: 'UnitTest', useWatchdog: false});
             connectStub = sinon.stub(client.socket, 'connect');
             connectStub.callsFake((options, cb) => {
                 expect(options.port).to.equal(25002);
@@ -516,7 +516,7 @@ describe('Client', () => {
         let writeStub;
 
         beforeEach(() => {
-            client = new Client('localhost', 25002, 'UnitTest', false);
+            client = new Client({host: 'localhost', port: 25002, name: 'UnitTest', useWatchdog: false});
             connectStub = sinon.stub(client.socket, 'connect');
             connectStub.callsFake((options, cb) => {
                 expect(options.port).to.equal(25002);
@@ -621,7 +621,7 @@ describe('Client', () => {
             setIntervalSpy = sinon.spy(this.clock, 'setInterval');
             clearIntervalSpy = sinon.spy(this.clock, 'clearInterval');
 
-            client = new Client('localhost', 25002, 'UnitTest');
+            client = new Client({host: 'localhost', port: 25002, name: 'UnitTest'});
             connectStub = sinon.stub(client.socket, 'connect');
             connectStub.callsFake((options, cb) => {
                 expect(options.port).to.equal(25002);

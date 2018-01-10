@@ -4,13 +4,13 @@ import {FLLScoreClient} from '../shared/interface';
 
 export class WebClient extends EventEmitter implements FLLScoreClient.IWebClient {
     public host: string = 'localhost';
-    public port: number = 25002;
+    public port: number = 25003;
     public socket: SocketIOClient.Socket;
 
     private lastUpdate?: Date;
     private scoreInfo?: FLLScoreClient.IScoreInfo;
 
-    constructor(host: string = 'localhost', port: number = 25002) {
+    constructor(host: string = 'localhost', port: number = 25003) {
         super();
         this.host = host;
         this.port = port;
@@ -53,7 +53,6 @@ export class WebClient extends EventEmitter implements FLLScoreClient.IWebClient
             if (this.lastUpdate === undefined) {
                 this.socket.emit('sendLastUpdate', 'please', (res: string|Error) => {
                     if (!isNaN(Date.parse(res as string))) {
-                        console.log('getLastUpdate: ' + res);
                         this.lastUpdate = new Date(res as string);
                         resolve(this.lastUpdate);
                     } else {

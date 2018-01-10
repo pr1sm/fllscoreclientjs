@@ -18,7 +18,7 @@ describe('createClient', () => {
     });
 
     it('should return a valid Client with host parameter', () => {
-        let client = createClient('new-host');
+        let client = createClient({host: 'new-host'});
         expect(client instanceof Client).to.be.true;
         expect(client.host).to.equal('new-host');
         expect(client.port).to.equal(25002);
@@ -30,7 +30,7 @@ describe('createClient', () => {
     });
 
     it('should return a valid Client with host and port parameters', () => {
-        let client = createClient('new-host', 8080);
+        let client = createClient({host: 'new-host', port: 8080});
         expect(client instanceof Client).to.be.true;
         expect(client.host).to.equal('new-host');
         expect(client.port).to.equal(8080);
@@ -42,7 +42,7 @@ describe('createClient', () => {
     });
 
     it('should return a valid Client with all parameters', () => {
-        let client = createClient('new-host', 8080, 'new-name');
+        let client = createClient({host: 'new-host', port: 8080, name: 'new-name'});
         expect(client instanceof Client).to.be.true;
         expect(client.host).to.equal('new-host');
         expect(client.port).to.equal(8080);
