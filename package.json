@@ -50,6 +50,7 @@
     "webpack": "^3.10.0"
   },
   "dependencies": {
+    "events": "^1.1.1",
     "socket.io": "^2.0.4",
     "socket.io-client": "^2.0.4",
     "ws": "^4.0.0"

@@ -351,12 +351,51 @@ class WebServer {
         this.server = io();
         this.server.on('connection', (client) => {
             this.fllclient.socket.on('data', (data) => {
-                console.log('forwarding to websocket:\n' + data);
-                client.send(data);
+                console.log('Received:\n\t' + data.toString().trim());
             });
-            client.on('message', (data) => {
-                console.log('forwarding to socket:\n' + data);
-                this.fllclient.socket.write(data);
+            if (this.fllclient.lastUpdate !== undefined) {
+                client.emit('lastUpdate', this.fllclient.lastUpdate.toISOString());
+            }
+            if (this.fllclient.scoreInfo !== undefined) {
+                client.emit('scoreInfo', this.fllclient.scoreInfo);
+            }
+            client.on('sendLastUpdate', (m, cb) => {
+                if (m === 'please') {
+                    if (this.fllclient.lastUpdate !== undefined) {
+                        cb(this.fllclient.lastUpdate.toISOString());
+                    }
+                    else {
+                        this.fllclient.sendLastUpdate().then((date) => {
+                            client.emit('lastUpdate', date.toISOString());
+                            cb(date.toISOString());
+                        }).catch((err) => {
+                            // TODO: Deal with this error
+                            console.log(err);
+                        });
+                    }
+                }
+                else {
+                    cb(new Error('invalid command'));
+                }
+            });
+            client.on('sendScoreInfo', (m, cb) => {
+                if (m === 'please') {
+                    if (this.fllclient.scoreInfo !== undefined) {
+                        cb(this.fllclient.scoreInfo);
+                    }
+                    else {
+                        this.fllclient.sendScore().then((scoreInfo) => {
+                            client.emit('scoreInfo', scoreInfo);
+                            cb(scoreInfo);
+                        }).catch((err) => {
+                            // TODO: Deal with this error
+                            console.log(err);
+                        });
+                    }
+                }
+                else {
+                    cb(new Error('invalid command'));
+                }
             });
         });
     }

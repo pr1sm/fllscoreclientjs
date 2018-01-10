@@ -110,7 +110,7 @@ module.exports = g;
  * Expose `debug()` as the module.
  */
 
-exports = module.exports = __webpack_require__(33);
+exports = module.exports = __webpack_require__(34);
 exports.log = log;
 exports.formatArgs = formatArgs;
 exports.save = save;
@@ -469,15 +469,15 @@ Emitter.prototype.hasListeners = function(event){
  * Module dependencies.
  */
 
-var keys = __webpack_require__(40);
+var keys = __webpack_require__(41);
 var hasBinary = __webpack_require__(13);
-var sliceBuffer = __webpack_require__(41);
-var after = __webpack_require__(42);
-var utf8 = __webpack_require__(43);
+var sliceBuffer = __webpack_require__(42);
+var after = __webpack_require__(43);
+var utf8 = __webpack_require__(44);
 
 var base64encoder;
 if (global && global.ArrayBuffer) {
-  base64encoder = __webpack_require__(45);
+  base64encoder = __webpack_require__(46);
 }
 
 /**
@@ -535,7 +535,7 @@ var err = { type: 'error', data: 'parser error' };
  * Create a blob api even for blob builder when vendor prefixes exist
  */
 
-var Blob = __webpack_require__(46);
+var Blob = __webpack_require__(47);
 
 /**
  * Encodes a packet.
@@ -1234,7 +1234,7 @@ module.exports = function(a, b){
 var debug = __webpack_require__(1)('socket.io-parser');
 var Emitter = __webpack_require__(2);
 var hasBin = __webpack_require__(13);
-var binary = __webpack_require__(35);
+var binary = __webpack_require__(36);
 var isBuf = __webpack_require__(15);
 
 /**
@@ -1634,7 +1634,7 @@ function error() {
 
 /* WEBPACK VAR INJECTION */(function(global) {// browser shim for xmlhttprequest module
 
-var hasCORS = __webpack_require__(38);
+var hasCORS = __webpack_require__(39);
 
 module.exports = function (opts) {
   var xdomain = opts.xdomain;
@@ -2772,7 +2772,7 @@ function isBuf(obj) {
  * Module dependencies.
  */
 
-var eio = __webpack_require__(36);
+var eio = __webpack_require__(37);
 var Socket = __webpack_require__(21);
 var Emitter = __webpack_require__(2);
 var parser = __webpack_require__(7);
@@ -2780,7 +2780,7 @@ var on = __webpack_require__(22);
 var bind = __webpack_require__(23);
 var debug = __webpack_require__(1)('socket.io-client:manager');
 var indexOf = __webpack_require__(20);
-var Backoff = __webpack_require__(51);
+var Backoff = __webpack_require__(52);
 
 /**
  * IE6+ hasOwnProperty
@@ -3351,9 +3351,9 @@ Manager.prototype.onreconnect = function () {
  */
 
 var XMLHttpRequest = __webpack_require__(8);
-var XHR = __webpack_require__(39);
-var JSONP = __webpack_require__(47);
-var websocket = __webpack_require__(48);
+var XHR = __webpack_require__(40);
+var JSONP = __webpack_require__(48);
+var websocket = __webpack_require__(49);
 
 /**
  * Export transports.
@@ -3754,7 +3754,7 @@ module.exports = function(arr, obj){
 
 var parser = __webpack_require__(7);
 var Emitter = __webpack_require__(2);
-var toArray = __webpack_require__(50);
+var toArray = __webpack_require__(51);
 var on = __webpack_require__(22);
 var bind = __webpack_require__(23);
 var debug = __webpack_require__(1)('socket.io-client:socket');
@@ -4241,8 +4241,8 @@ module.exports = __webpack_require__(25);
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const webClient_1 = __webpack_require__(26);
-function createWebClient(host, port, name, useWatchdog) {
-    return new webClient_1.WebClient(host, port, name, useWatchdog);
+function createWebClient(host, port) {
+    return new webClient_1.WebClient(host, port);
 }
 exports.createWebClient = createWebClient;
 
@@ -4254,195 +4254,83 @@ exports.createWebClient = createWebClient;
 "use strict";
 /* WEBPACK VAR INJECTION */(function(console) {
 Object.defineProperty(exports, "__esModule", { value: true });
-const io = __webpack_require__(31);
-const contants_1 = __webpack_require__(52);
-var EventEmitter = NodeJS.EventEmitter;
-class WebClient extends EventEmitter {
-    constructor(host = 'localhost', port = 25002, name = 'FLLScoreClient', useWatchdog = true) {
+const events_1 = __webpack_require__(31);
+const io = __webpack_require__(32);
+class WebClient extends events_1.EventEmitter {
+    constructor(host = 'localhost', port = 25002) {
         super();
         this.host = 'localhost';
         this.port = 25002;
-        this.name = 'FLLScoreClient';
         this.host = host;
         this.port = port;
-        this.name = name;
         this.lastUpdate = undefined;
         this.scoreInfo = undefined;
-        this.status = 0;
-        this.socket = io('ws://' + this.host + ':' + this.port, { autoConnect: false });
-        this.useWatchdog = useWatchdog;
-        this.connTest = undefined;
-        this.watchdogInterval = 5;
-        this.socket.on('close', () => {
-            this.status = 0;
-            if (this.connTest !== undefined) {
-                clearInterval(this.connTest);
+        this.socket = io('ws://' + this.host + ':' + this.port);
+        this.socket.on('lastUpdate', (res) => {
+            if (!isNaN(Date.parse(res))) {
+                this.lastUpdate = new Date(Date.parse(res));
+                this.emit('lastUpdate', this.lastUpdate);
             }
-            this.connTest = undefined;
-            this.watchdogInterval = 5;
-        });
-    }
-    connect() {
-        return new Promise((resolve, reject) => {
-            this.status = 1;
-            this.socket.once('connect_error', (err) => {
-                this.status = 0;
-                reject(err);
-            });
-            this.socket.once('connect_timeout', (err) => {
-                this.status = 0;
-                reject(err);
-            });
-            this.socket.once('message', (data) => {
-                console.log('received: ' + data);
-                if (contants_1.FLLScoreClientConstants.WELCOME.test(data.toString())) {
-                    const raw = data.toString().trim();
-                    this.watchdogInterval = parseInt(raw.substring(raw.indexOf(':') + 1), 10);
-                    this.resetConnectionTest();
-                    resolve('Connected');
-                }
-                else {
-                    this.status = 0;
-                    reject(new Error('Unexpected Message returned: ' + data));
-                }
-            });
-            this.socket.on('connect', () => {
-                console.log('connected');
-                this.status = 2;
-                this.socket.send('FLLScore:' + this.name + '|Primary\r\n');
-            });
-            this.socket.connect();
-        });
-    }
-    sendPing() {
-        return new Promise((resolve, reject) => {
-            if (this.status !== 2) {
-                reject(new Error('Not Connected'));
+            else {
+                // TODO: Handle this error
+                console.error(res);
             }
-            this.socket.once('error', (err) => {
-                reject(err);
-            });
-            this.socket.send('Ping:\r\n', (data) => {
-                this.resetConnectionTest();
-                if (contants_1.FLLScoreClientConstants.ECHO.test(data.toString())) {
-                    resolve('Echo Received');
-                }
-                else {
-                    reject(new Error('Unexpected Message returned: ' + data));
-                }
-            });
         });
-    }
-    sendLastUpdate() {
-        return new Promise((resolve, reject) => {
-            if (this.status !== 2) {
-                reject(new Error('Not Connected'));
+        this.socket.on('scoreInfo', (res) => {
+            if (res.scheduleInfo !== undefined &&
+                res.teamInfo !== undefined) {
+                this.scoreInfo = res;
+                this.emit('scoreInfo', this.scoreInfo);
             }
-            this.socket.once('error', (err) => {
-                reject(err);
-            });
-            this.socket.send('Send Last Update:\r\n', (data) => {
-                this.resetConnectionTest();
-                if (contants_1.FLLScoreClientConstants.LAST_UPDATE.test(data.toString())) {
-                    const raw = data.toString().trim();
-                    const response = raw.substring(raw.indexOf(':') + 1);
-                    this.lastUpdate = new Date(response);
-                    resolve(this.lastUpdate);
-                }
-                else {
-                    reject(new Error('Unexpected Message returned: ' + data));
-                }
-            });
+            else {
+                // TODO: Handle this error
+                console.error(res);
+            }
+        });
+        this.socket.on('connect', () => {
+            console.info('Connected');
+        });
+        this.socket.on('disconnect', () => {
+            console.info('Disconnected');
         });
     }
-    sendScore() {
+    getLastUpdate() {
         return new Promise((resolve, reject) => {
-            let intermediateData = '';
-            let scheduleInfo;
-            const teamInfo = [];
-            const sendScoreDataHandler = (data) => {
-                let raw = data.toString();
-                if (!raw.endsWith('\r\n')) {
-                    intermediateData += raw;
-                    return;
-                }
-                else {
-                    raw = intermediateData + raw;
-                    intermediateData = '';
-                }
-                const split = raw.trim().split('\r\n');
-                split.forEach((value) => {
-                    if (contants_1.FLLScoreClientConstants.SCORE_DONE.test(value)) {
-                        this.socket.removeListener('data', sendScoreDataHandler);
-                        this.scoreInfo = { scheduleInfo, teamInfo };
-                        resolve(this.scoreInfo);
-                    }
-                    else if (contants_1.FLLScoreClientConstants.SCORE_HEADER.test(value)) {
-                        const content = value.substring(value.indexOf(':') + 1).split('|');
-                        scheduleInfo = {
-                            lastUpdate: new Date(content[0]),
-                            numberOfCompletedMatches: parseInt(content[3], 10),
-                            numberOfMatches: parseInt(content[2], 10),
-                            numberOfTeams: parseInt(content[1], 10),
-                        };
-                    }
-                    else if (contants_1.FLLScoreClientConstants.SCORE.test(value)) {
-                        const content = value.substring(value.indexOf(':') + 1).split('|');
-                        teamInfo.push({
-                            highScore: parseInt(content[2], 10),
-                            name: content[1],
-                            number: parseInt(content[0], 10),
-                            scores: [parseInt(content[3], 10), parseInt(content[4], 10), parseInt(content[5], 10)],
-                        });
+            if (this.lastUpdate === undefined) {
+                this.socket.emit('sendLastUpdate', 'please', (res) => {
+                    if (!isNaN(Date.parse(res))) {
+                        console.log('getLastUpdate: ' + res);
+                        this.lastUpdate = new Date(res);
+                        resolve(this.lastUpdate);
                     }
                     else {
-                        // TODO: Deal with invalid command
+                        console.error('Rejecting...' + res);
+                        reject(res);
                     }
                 });
-            };
-            if (this.status !== 2) {
-                reject(new Error('Not Connected'));
             }
-            this.socket.once('error', (err) => {
-                reject(err);
-            });
-            this.socket.on('message', sendScoreDataHandler);
-            this.socket.send('Send Score:\r\n', () => {
-                this.resetConnectionTest();
-            });
+            else {
+                resolve(this.lastUpdate);
+            }
         });
     }
-    close() {
+    getScoreInfo() {
         return new Promise((resolve, reject) => {
-            if (this.status !== 2) {
-                reject(new Error('Not Connected'));
+            if (this.scoreInfo === undefined) {
+                this.socket.emit('sendScoreInfo', 'please', (res) => {
+                    if (res.scheduleInfo !== undefined &&
+                        res.teamInfo !== undefined) {
+                        resolve(res);
+                    }
+                    else {
+                        reject(res);
+                    }
+                });
             }
-            this.socket.once('error', (err) => {
-                reject(err);
-            });
-            this.socket.once('disconnect', (reason) => {
-                if (reason) {
-                    reject(new Error('Closed with error'));
-                }
-                else {
-                    resolve('Connection Closed');
-                }
-            });
-            this.socket.close();
+            else {
+                resolve(this.scoreInfo);
+            }
         });
-    }
-    resetConnectionTest() {
-        if (this.connTest !== undefined) {
-            clearInterval(this.connTest);
-        }
-        if (!this.useWatchdog) {
-            return;
-        }
-        this.connTest = setInterval(() => {
-            if (this.status === 2) {
-                this.socket.send('Ping:\r\n');
-            }
-        }, this.watchdogInterval * 1000);
     }
 }
 exports.WebClient = WebClient;
@@ -5002,12 +4890,321 @@ function now() {
 /* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
+/* WEBPACK VAR INJECTION */(function(console) {// Copyright Joyent, Inc. and other Node contributors.
+//
+// Permission is hereby granted, free of charge, to any person obtaining a
+// copy of this software and associated documentation files (the
+// "Software"), to deal in the Software without restriction, including
+// without limitation the rights to use, copy, modify, merge, publish,
+// distribute, sublicense, and/or sell copies of the Software, and to permit
+// persons to whom the Software is furnished to do so, subject to the
+// following conditions:
+//
+// The above copyright notice and this permission notice shall be included
+// in all copies or substantial portions of the Software.
+//
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS
+// OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+// MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+// NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
+// DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+// OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE
+// USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+function EventEmitter() {
+  this._events = this._events || {};
+  this._maxListeners = this._maxListeners || undefined;
+}
+module.exports = EventEmitter;
+
+// Backwards-compat with node 0.10.x
+EventEmitter.EventEmitter = EventEmitter;
+
+EventEmitter.prototype._events = undefined;
+EventEmitter.prototype._maxListeners = undefined;
+
+// By default EventEmitters will print a warning if more than 10 listeners are
+// added to it. This is a useful default which helps finding memory leaks.
+EventEmitter.defaultMaxListeners = 10;
+
+// Obviously not all Emitters should be limited to 10. This function allows
+// that to be increased. Set to zero for unlimited.
+EventEmitter.prototype.setMaxListeners = function(n) {
+  if (!isNumber(n) || n < 0 || isNaN(n))
+    throw TypeError('n must be a positive number');
+  this._maxListeners = n;
+  return this;
+};
+
+EventEmitter.prototype.emit = function(type) {
+  var er, handler, len, args, i, listeners;
+
+  if (!this._events)
+    this._events = {};
+
+  // If there is no 'error' event listener then throw.
+  if (type === 'error') {
+    if (!this._events.error ||
+        (isObject(this._events.error) && !this._events.error.length)) {
+      er = arguments[1];
+      if (er instanceof Error) {
+        throw er; // Unhandled 'error' event
+      } else {
+        // At least give some kind of context to the user
+        var err = new Error('Uncaught, unspecified "error" event. (' + er + ')');
+        err.context = er;
+        throw err;
+      }
+    }
+  }
+
+  handler = this._events[type];
+
+  if (isUndefined(handler))
+    return false;
+
+  if (isFunction(handler)) {
+    switch (arguments.length) {
+      // fast cases
+      case 1:
+        handler.call(this);
+        break;
+      case 2:
+        handler.call(this, arguments[1]);
+        break;
+      case 3:
+        handler.call(this, arguments[1], arguments[2]);
+        break;
+      // slower
+      default:
+        args = Array.prototype.slice.call(arguments, 1);
+        handler.apply(this, args);
+    }
+  } else if (isObject(handler)) {
+    args = Array.prototype.slice.call(arguments, 1);
+    listeners = handler.slice();
+    len = listeners.length;
+    for (i = 0; i < len; i++)
+      listeners[i].apply(this, args);
+  }
+
+  return true;
+};
+
+EventEmitter.prototype.addListener = function(type, listener) {
+  var m;
+
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  if (!this._events)
+    this._events = {};
+
+  // To avoid recursion in the case that type === "newListener"! Before
+  // adding it to the listeners, first emit "newListener".
+  if (this._events.newListener)
+    this.emit('newListener', type,
+              isFunction(listener.listener) ?
+              listener.listener : listener);
+
+  if (!this._events[type])
+    // Optimize the case of one listener. Don't need the extra array object.
+    this._events[type] = listener;
+  else if (isObject(this._events[type]))
+    // If we've already got an array, just append.
+    this._events[type].push(listener);
+  else
+    // Adding the second element, need to change to array.
+    this._events[type] = [this._events[type], listener];
+
+  // Check for listener leak
+  if (isObject(this._events[type]) && !this._events[type].warned) {
+    if (!isUndefined(this._maxListeners)) {
+      m = this._maxListeners;
+    } else {
+      m = EventEmitter.defaultMaxListeners;
+    }
+
+    if (m && m > 0 && this._events[type].length > m) {
+      this._events[type].warned = true;
+      console.error('(node) warning: possible EventEmitter memory ' +
+                    'leak detected. %d listeners added. ' +
+                    'Use emitter.setMaxListeners() to increase limit.',
+                    this._events[type].length);
+      if (typeof console.trace === 'function') {
+        // not supported in IE 10
+        console.trace();
+      }
+    }
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.on = EventEmitter.prototype.addListener;
+
+EventEmitter.prototype.once = function(type, listener) {
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  var fired = false;
+
+  function g() {
+    this.removeListener(type, g);
+
+    if (!fired) {
+      fired = true;
+      listener.apply(this, arguments);
+    }
+  }
+
+  g.listener = listener;
+  this.on(type, g);
+
+  return this;
+};
+
+// emits a 'removeListener' event iff the listener was removed
+EventEmitter.prototype.removeListener = function(type, listener) {
+  var list, position, length, i;
+
+  if (!isFunction(listener))
+    throw TypeError('listener must be a function');
+
+  if (!this._events || !this._events[type])
+    return this;
+
+  list = this._events[type];
+  length = list.length;
+  position = -1;
+
+  if (list === listener ||
+      (isFunction(list.listener) && list.listener === listener)) {
+    delete this._events[type];
+    if (this._events.removeListener)
+      this.emit('removeListener', type, listener);
+
+  } else if (isObject(list)) {
+    for (i = length; i-- > 0;) {
+      if (list[i] === listener ||
+          (list[i].listener && list[i].listener === listener)) {
+        position = i;
+        break;
+      }
+    }
+
+    if (position < 0)
+      return this;
+
+    if (list.length === 1) {
+      list.length = 0;
+      delete this._events[type];
+    } else {
+      list.splice(position, 1);
+    }
+
+    if (this._events.removeListener)
+      this.emit('removeListener', type, listener);
+  }
+
+  return this;
+};
+
+EventEmitter.prototype.removeAllListeners = function(type) {
+  var key, listeners;
+
+  if (!this._events)
+    return this;
+
+  // not listening for removeListener, no need to emit
+  if (!this._events.removeListener) {
+    if (arguments.length === 0)
+      this._events = {};
+    else if (this._events[type])
+      delete this._events[type];
+    return this;
+  }
+
+  // emit removeListener for all listeners on all events
+  if (arguments.length === 0) {
+    for (key in this._events) {
+      if (key === 'removeListener') continue;
+      this.removeAllListeners(key);
+    }
+    this.removeAllListeners('removeListener');
+    this._events = {};
+    return this;
+  }
+
+  listeners = this._events[type];
+
+  if (isFunction(listeners)) {
+    this.removeListener(type, listeners);
+  } else if (listeners) {
+    // LIFO order
+    while (listeners.length)
+      this.removeListener(type, listeners[listeners.length - 1]);
+  }
+  delete this._events[type];
+
+  return this;
+};
+
+EventEmitter.prototype.listeners = function(type) {
+  var ret;
+  if (!this._events || !this._events[type])
+    ret = [];
+  else if (isFunction(this._events[type]))
+    ret = [this._events[type]];
+  else
+    ret = this._events[type].slice();
+  return ret;
+};
+
+EventEmitter.prototype.listenerCount = function(type) {
+  if (this._events) {
+    var evlistener = this._events[type];
+
+    if (isFunction(evlistener))
+      return 1;
+    else if (evlistener)
+      return evlistener.length;
+  }
+  return 0;
+};
+
+EventEmitter.listenerCount = function(emitter, type) {
+  return emitter.listenerCount(type);
+};
+
+function isFunction(arg) {
+  return typeof arg === 'function';
+}
+
+function isNumber(arg) {
+  return typeof arg === 'number';
+}
+
+function isObject(arg) {
+  return typeof arg === 'object' && arg !== null;
+}
+
+function isUndefined(arg) {
+  return arg === void 0;
+}
+
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
+
+/***/ }),
+/* 32 */
+/***/ (function(module, exports, __webpack_require__) {
+
 
 /**
  * Module dependencies.
  */
 
-var url = __webpack_require__(32);
+var url = __webpack_require__(33);
 var parser = __webpack_require__(7);
 var Manager = __webpack_require__(16);
 var debug = __webpack_require__(1)('socket.io-client');
@@ -5099,7 +5296,7 @@ exports.Socket = __webpack_require__(21);
 
 
 /***/ }),
-/* 32 */
+/* 33 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {
@@ -5181,7 +5378,7 @@ function url (uri, loc) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 33 */
+/* 34 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(console) {
@@ -5197,7 +5394,7 @@ exports.coerce = coerce;
 exports.disable = disable;
 exports.enable = enable;
 exports.enabled = enabled;
-exports.humanize = __webpack_require__(34);
+exports.humanize = __webpack_require__(35);
 
 /**
  * The currently active debug mode names, and names to skip.
@@ -5390,7 +5587,7 @@ function coerce(val) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
 
 /***/ }),
-/* 34 */
+/* 35 */
 /***/ (function(module, exports) {
 
 /**
@@ -5548,7 +5745,7 @@ function plural(ms, n, name) {
 
 
 /***/ }),
-/* 35 */
+/* 36 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/*global Blob,File*/
@@ -5696,11 +5893,11 @@ exports.removeBlobs = function(data, callback) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 36 */
+/* 37 */
 /***/ (function(module, exports, __webpack_require__) {
 
 
-module.exports = __webpack_require__(37);
+module.exports = __webpack_require__(38);
 
 /**
  * Exports parser
@@ -5712,7 +5909,7 @@ module.exports.parser = __webpack_require__(3);
 
 
 /***/ }),
-/* 37 */
+/* 38 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/**
@@ -6462,7 +6659,7 @@ Socket.prototype.filterUpgrades = function (upgrades) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 38 */
+/* 39 */
 /***/ (function(module, exports) {
 
 
@@ -6485,7 +6682,7 @@ try {
 
 
 /***/ }),
-/* 39 */
+/* 40 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/**
@@ -6905,7 +7102,7 @@ function unloadHandler () {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 40 */
+/* 41 */
 /***/ (function(module, exports) {
 
 
@@ -6930,7 +7127,7 @@ module.exports = Object.keys || function keys (obj){
 
 
 /***/ }),
-/* 41 */
+/* 42 */
 /***/ (function(module, exports) {
 
 /**
@@ -6965,7 +7162,7 @@ module.exports = function(arraybuffer, start, end) {
 
 
 /***/ }),
-/* 42 */
+/* 43 */
 /***/ (function(module, exports) {
 
 module.exports = after
@@ -6999,7 +7196,7 @@ function noop() {}
 
 
 /***/ }),
-/* 43 */
+/* 44 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module, global) {var __WEBPACK_AMD_DEFINE_RESULT__;/*! https://mths.be/utf8js v2.1.2 by @mathias */
@@ -7257,10 +7454,10 @@ function noop() {}
 
 }(this));
 
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(44)(module), __webpack_require__(0)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(45)(module), __webpack_require__(0)))
 
 /***/ }),
-/* 44 */
+/* 45 */
 /***/ (function(module, exports) {
 
 module.exports = function(module) {
@@ -7288,7 +7485,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 45 */
+/* 46 */
 /***/ (function(module, exports) {
 
 /*
@@ -7361,7 +7558,7 @@ module.exports = function(module) {
 
 
 /***/ }),
-/* 46 */
+/* 47 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/**
@@ -7464,7 +7661,7 @@ module.exports = (function() {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 47 */
+/* 48 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {
@@ -7702,7 +7899,7 @@ JSONPPolling.prototype.doWrite = function (data, fn) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 48 */
+/* 49 */
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(global) {/**
@@ -7719,7 +7916,7 @@ var BrowserWebSocket = global.WebSocket || global.MozWebSocket;
 var NodeWebSocket;
 if (typeof window === 'undefined') {
   try {
-    NodeWebSocket = __webpack_require__(49);
+    NodeWebSocket = __webpack_require__(50);
   } catch (e) { }
 }
 
@@ -7995,13 +8192,13 @@ WS.prototype.check = function () {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(0)))
 
 /***/ }),
-/* 49 */
+/* 50 */
 /***/ (function(module, exports) {
 
 /* (ignored) */
 
 /***/ }),
-/* 50 */
+/* 51 */
 /***/ (function(module, exports) {
 
 module.exports = toArray
@@ -8020,7 +8217,7 @@ function toArray(list, index) {
 
 
 /***/ }),
-/* 51 */
+/* 52 */
 /***/ (function(module, exports) {
 
 
@@ -8108,30 +8305,6 @@ Backoff.prototype.setJitter = function(jitter){
   this.jitter = jitter;
 };
 
-
-
-/***/ }),
-/* 52 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-Object.defineProperty(exports, "__esModule", { value: true });
-var FLLScoreClientConstants;
-(function (FLLScoreClientConstants) {
-    FLLScoreClientConstants.WELCOME = /^Welcome:[0-9]+(\r\n)*$/;
-    FLLScoreClientConstants.ECHO = /^Echo:(\r\n)*$/;
-    FLLScoreClientConstants.SCORE_HEADER = /^Score Header:[a-zA-Z0-9\/: ]+(\|[0-9]+){3}(\r\n)*$/;
-    FLLScoreClientConstants.SCORE = /^Score:[0-9]+\|.+(\|(-1|[0-9]+)){4}(\r\n)*$/;
-    FLLScoreClientConstants.SCORE_DONE = /^Score Done:(\r\n)*$/;
-    FLLScoreClientConstants.LAST_UPDATE = /^Last Update:.+(\r\n)*$/;
-    let ConnectionStatus;
-    (function (ConnectionStatus) {
-        ConnectionStatus.Disconnected = 0;
-        ConnectionStatus.Connecting = 1;
-        ConnectionStatus.Connected = 2;
-    })(ConnectionStatus = FLLScoreClientConstants.ConnectionStatus || (FLLScoreClientConstants.ConnectionStatus = {}));
-})(FLLScoreClientConstants = exports.FLLScoreClientConstants || (exports.FLLScoreClientConstants = {}));
 
 
 /***/ })

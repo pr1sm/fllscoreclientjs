@@ -1,4 +1,4 @@
-var fllScoreClient = require('../dist/fllscoreclientserver'); // Uncomment for dev version
+var fllScoreClient = require('../dist/fllscoreclientproxy'); // Uncomment for dev version
 
 var server = fllScoreClient.createWebServer('localhost', 8100);
 
