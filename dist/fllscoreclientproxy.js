@@ -81,7 +81,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const client_1 = __webpack_require__(2);
-const webServer_1 = __webpack_require__(5);
+const webServer_1 = __webpack_require__(7);
 function createClient(host, port, name, useWatchdog) {
     return new client_1.Client(host, port, name, useWatchdog);
 }
@@ -107,7 +107,7 @@ module.exports = __webpack_require__(0);
 
 Object.defineProperty(exports, "__esModule", { value: true });
 const net_1 = __webpack_require__(3);
-const contants_1 = __webpack_require__(4);
+const FLLScoreClientConstants = __webpack_require__(4);
 class Client {
     constructor(host = 'localhost', port = 25002, name = 'FLLScoreClient', useWatchdog = true) {
         this.host = 'localhost';
@@ -118,13 +118,13 @@ class Client {
         this.name = name;
         this.lastUpdate = undefined;
         this.scoreInfo = undefined;
-        this.status = 0;
+        this.status = FLLScoreClientConstants.ConnectionStatus.Disconnected;
         this.socket = new net_1.Socket();
         this.useWatchdog = useWatchdog;
         this.connTest = undefined;
         this.watchdogInterval = 5;
         this.socket.on('close', () => {
-            this.status = 0;
+            this.status = FLLScoreClientConstants.ConnectionStatus.Disconnected;
             if (this.connTest !== undefined) {
                 clearInterval(this.connTest);
             }
@@ -134,20 +134,20 @@ class Client {
     }
     connect() {
         return new Promise((resolve, reject) => {
-            this.status = 1;
+            this.status = FLLScoreClientConstants.ConnectionStatus.Connecting;
             this.socket.once('error', (err) => {
-                this.status = 0;
+                this.status = FLLScoreClientConstants.ConnectionStatus.Disconnected;
                 reject(err);
             });
             this.socket.once('data', (data) => {
-                if (contants_1.FLLScoreClientConstants.WELCOME.test(data.toString())) {
+                if (FLLScoreClientConstants.WELCOME.test(data.toString())) {
                     const raw = data.toString().trim();
                     this.watchdogInterval = parseInt(raw.substring(raw.indexOf(':') + 1), 10);
                     this.resetConnectionTest();
                     resolve('Connected');
                 }
                 else {
-                    this.status = 0;
+                    this.status = FLLScoreClientConstants.ConnectionStatus.Disconnected;
                     reject(new Error('Unexpected Message returned: ' + data));
                 }
             });
@@ -155,21 +155,21 @@ class Client {
                 host: this.host,
                 port: this.port,
             }, () => {
-                this.status = 2;
+                this.status = FLLScoreClientConstants.ConnectionStatus.Connected;
                 this.socket.write('FLLScore:' + this.name + '|Primary\r\n');
             });
         });
     }
     sendPing() {
         return new Promise((resolve, reject) => {
-            if (this.status !== 2) {
+            if (this.status !== FLLScoreClientConstants.ConnectionStatus.Connected) {
                 reject(new Error('Not Connected'));
             }
             this.socket.once('error', (err) => {
                 reject(err);
             });
             this.socket.once('data', (data) => {
-                if (contants_1.FLLScoreClientConstants.ECHO.test(data.toString())) {
+                if (FLLScoreClientConstants.ECHO.test(data.toString())) {
                     resolve('Echo Received');
                 }
                 else {
@@ -183,14 +183,14 @@ class Client {
     }
     sendLastUpdate() {
         return new Promise((resolve, reject) => {
-            if (this.status !== 2) {
+            if (this.status !== FLLScoreClientConstants.ConnectionStatus.Connected) {
                 reject(new Error('Not Connected'));
             }
             this.socket.once('error', (err) => {
                 reject(err);
             });
             this.socket.once('data', (data) => {
-                if (contants_1.FLLScoreClientConstants.LAST_UPDATE.test(data.toString())) {
+                if (FLLScoreClientConstants.LAST_UPDATE.test(data.toString())) {
                     const raw = data.toString().trim();
                     const response = raw.substring(raw.indexOf(':') + 1);
                     this.lastUpdate = new Date(response);
@@ -222,12 +222,12 @@ class Client {
                 }
                 const split = raw.trim().split('\r\n');
                 split.forEach((value) => {
-                    if (contants_1.FLLScoreClientConstants.SCORE_DONE.test(value)) {
+                    if (FLLScoreClientConstants.SCORE_DONE.test(value)) {
                         this.socket.removeListener('data', sendScoreDataHandler);
                         this.scoreInfo = { scheduleInfo, teamInfo };
                         resolve(this.scoreInfo);
                     }
-                    else if (contants_1.FLLScoreClientConstants.SCORE_HEADER.test(value)) {
+                    else if (FLLScoreClientConstants.SCORE_HEADER.test(value)) {
                         const content = value.substring(value.indexOf(':') + 1).split('|');
                         scheduleInfo = {
                             lastUpdate: new Date(content[0]),
@@ -236,7 +236,7 @@ class Client {
                             numberOfTeams: parseInt(content[1], 10),
                         };
                     }
-                    else if (contants_1.FLLScoreClientConstants.SCORE.test(value)) {
+                    else if (FLLScoreClientConstants.SCORE.test(value)) {
                         const content = value.substring(value.indexOf(':') + 1).split('|');
                         teamInfo.push({
                             highScore: parseInt(content[2], 10),
@@ -250,7 +250,7 @@ class Client {
                     }
                 });
             };
-            if (this.status !== 2) {
+            if (this.status !== FLLScoreClientConstants.ConnectionStatus.Connected) {
                 reject(new Error('Not Connected'));
             }
             this.socket.once('error', (err) => {
@@ -264,7 +264,7 @@ class Client {
     }
     close() {
         return new Promise((resolve, reject) => {
-            if (this.status !== 2) {
+            if (this.status !== FLLScoreClientConstants.ConnectionStatus.Connected) {
                 reject(new Error('Not Connected'));
             }
             this.socket.once('error', (err) => {
@@ -289,7 +289,7 @@ class Client {
             return;
         }
         this.connTest = setInterval(() => {
-            if (this.status === 2) {
+            if (this.status === FLLScoreClientConstants.ConnectionStatus.Connected) {
                 this.socket.write('Ping:\r\n');
             }
         }, this.watchdogInterval * 1000);
@@ -310,22 +310,13 @@ module.exports = require("net");
 
 "use strict";
 
+function __export(m) {
+    for (var p in m) if (!exports.hasOwnProperty(p)) exports[p] = m[p];
+}
 Object.defineProperty(exports, "__esModule", { value: true });
-var FLLScoreClientConstants;
-(function (FLLScoreClientConstants) {
-    FLLScoreClientConstants.WELCOME = /^Welcome:[0-9]+(\r\n)*$/;
-    FLLScoreClientConstants.ECHO = /^Echo:(\r\n)*$/;
-    FLLScoreClientConstants.SCORE_HEADER = /^Score Header:[a-zA-Z0-9\/: ]+(\|[0-9]+){3}(\r\n)*$/;
-    FLLScoreClientConstants.SCORE = /^Score:[0-9]+\|.+(\|(-1|[0-9]+)){4}(\r\n)*$/;
-    FLLScoreClientConstants.SCORE_DONE = /^Score Done:(\r\n)*$/;
-    FLLScoreClientConstants.LAST_UPDATE = /^Last Update:.+(\r\n)*$/;
-    let ConnectionStatus;
-    (function (ConnectionStatus) {
-        ConnectionStatus.Disconnected = 0;
-        ConnectionStatus.Connecting = 1;
-        ConnectionStatus.Connected = 2;
-    })(ConnectionStatus = FLLScoreClientConstants.ConnectionStatus || (FLLScoreClientConstants.ConnectionStatus = {}));
-})(FLLScoreClientConstants = exports.FLLScoreClientConstants || (exports.FLLScoreClientConstants = {}));
+const ConnectionStatus = __webpack_require__(5);
+exports.ConnectionStatus = ConnectionStatus;
+__export(__webpack_require__(6));
 
 
 /***/ }),
@@ -335,7 +326,34 @@ var FLLScoreClientConstants;
 "use strict";
 
 Object.defineProperty(exports, "__esModule", { value: true });
-const io = __webpack_require__(6);
+exports.Disconnected = 0;
+exports.Connecting = 1;
+exports.Connected = 2;
+
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.WELCOME = /^Welcome:[0-9]+(\r\n)*$/;
+exports.ECHO = /^Echo:(\r\n)*$/;
+exports.SCORE_HEADER = /^Score Header:[a-zA-Z0-9\/: ]+(\|[0-9]+){3}(\r\n)*$/;
+exports.SCORE = /^Score:[0-9]+\|.+(\|(-1|[0-9]+)){4}(\r\n)*$/;
+exports.SCORE_DONE = /^Score Done:(\r\n)*$/;
+exports.LAST_UPDATE = /^Last Update:.+(\r\n)*$/;
+
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+Object.defineProperty(exports, "__esModule", { value: true });
+const io = __webpack_require__(8);
 const index_1 = __webpack_require__(0);
 class WebServer {
     constructor(host = 'localhost', port = 25002, name = 'FLLScoreClient', useWatchdog = true) {
@@ -414,7 +432,7 @@ exports.WebServer = WebServer;
 
 
 /***/ }),
-/* 6 */
+/* 8 */
 /***/ (function(module, exports) {
 
 module.exports = require("socket.io");

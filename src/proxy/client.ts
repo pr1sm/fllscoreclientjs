@@ -1,5 +1,5 @@
 import {Socket} from 'net';
-import {FLLScoreClientConstants} from '../shared/contants';
+import * as FLLScoreClientConstants from '../constants';
 import {FLLScoreClient} from '../shared/interface';
 import Timer = NodeJS.Timer;
 
@@ -24,14 +24,14 @@ export class Client implements FLLScoreClient.IClient {
         this.name = name;
         this.lastUpdate = undefined;
         this.scoreInfo = undefined;
-        this.status = 0;
+        this.status = FLLScoreClientConstants.ConnectionStatus.Disconnected;
         this.socket = new Socket();
         this.useWatchdog = useWatchdog;
         this.connTest = undefined;
         this.watchdogInterval = 5;
 
         this.socket.on('close', () => {
-            this.status = 0;
+            this.status = FLLScoreClientConstants.ConnectionStatus.Disconnected;
             if (this.connTest !== undefined) {
                 clearInterval(this.connTest);
             }
@@ -42,10 +42,10 @@ export class Client implements FLLScoreClient.IClient {
 
     public connect(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            this.status = 1;
+            this.status = FLLScoreClientConstants.ConnectionStatus.Connecting;
 
             this.socket.once('error', (err) => {
-                this.status = 0;
+                this.status = FLLScoreClientConstants.ConnectionStatus.Disconnected;
                 reject(err);
             });
 
@@ -56,7 +56,7 @@ export class Client implements FLLScoreClient.IClient {
                     this.resetConnectionTest();
                     resolve('Connected');
                 } else {
-                    this.status = 0;
+                    this.status = FLLScoreClientConstants.ConnectionStatus.Disconnected;
                     reject(new Error('Unexpected Message returned: ' + data));
                 }
             });
@@ -65,7 +65,7 @@ export class Client implements FLLScoreClient.IClient {
                 host: this.host,
                 port: this.port,
             }, () => {
-                this.status = 2;
+                this.status = FLLScoreClientConstants.ConnectionStatus.Connected;
                 this.socket.write('FLLScore:' + this.name + '|Primary\r\n');
             });
         });
@@ -73,7 +73,7 @@ export class Client implements FLLScoreClient.IClient {
 
     public sendPing(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            if (this.status !== 2) {
+            if (this.status !== FLLScoreClientConstants.ConnectionStatus.Connected) {
                 reject(new Error('Not Connected'));
             }
 
@@ -97,7 +97,7 @@ export class Client implements FLLScoreClient.IClient {
 
     public sendLastUpdate(): Promise<Date> {
         return new Promise<Date>((resolve, reject) => {
-            if (this.status !== 2) {
+            if (this.status !== FLLScoreClientConstants.ConnectionStatus.Connected) {
                 reject(new Error('Not Connected'));
             }
 
@@ -168,7 +168,7 @@ export class Client implements FLLScoreClient.IClient {
                 });
             };
 
-            if (this.status !== 2) {
+            if (this.status !== FLLScoreClientConstants.ConnectionStatus.Connected) {
                 reject(new Error('Not Connected'));
             }
 
@@ -186,7 +186,7 @@ export class Client implements FLLScoreClient.IClient {
 
     public close(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
-            if (this.status !== 2) {
+            if (this.status !== FLLScoreClientConstants.ConnectionStatus.Connected) {
                 reject(new Error('Not Connected'));
             }
 
@@ -216,7 +216,7 @@ export class Client implements FLLScoreClient.IClient {
         }
 
         this.connTest = setInterval(() => {
-            if (this.status === 2) {
+            if (this.status === FLLScoreClientConstants.ConnectionStatus.Connected) {
                 this.socket.write('Ping:\r\n');
             }
         }, this.watchdogInterval * 1000);

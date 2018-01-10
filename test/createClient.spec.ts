@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { createClient, FLLScoreClient } from "../src/proxy";
 import { Client } from "../src/proxy/client";
-import { FLLScoreClientConstants } from '../src/shared/contants';
+import * as FLLScoreClientConstants from '../src/constants';
 import { Socket } from "net";
 
 describe('createClient', () => {
@@ -11,7 +11,7 @@ describe('createClient', () => {
         expect(client.host).to.equal('localhost');
         expect(client.port).to.equal(25002);
         expect(client.name).to.equal('FLLScoreClient');
-        expect(client.status).to.equal(0);
+        expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
         expect(client.lastUpdate).to.be.undefined;
         expect(client.scoreInfo).to.be.undefined;
         expect(client.socket instanceof Socket).to.be.true;

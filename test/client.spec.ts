@@ -5,7 +5,7 @@ import * as sinonChai from "sinon-chai";
 import { expect } from "chai";
 import { Client } from "../src/proxy/client";
 import { FLLScoreClient } from "../src/shared/interface";
-import { FLLScoreClientConstants } from '../src/shared/contants';
+import * as FLLScoreClientConstants from '../src/constants';
 import { Socket } from "net";
 
 chai.use(sinonChai);
