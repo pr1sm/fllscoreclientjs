@@ -4,3 +4,8 @@ coverage/
 example/
 node_modules/
 test/
+src/
+.travis.yml
+tsconfig.json
+tslint.json
+webpack.config.js
