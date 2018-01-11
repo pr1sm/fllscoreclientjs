@@ -150,3 +150,5 @@ $ node webProxy.js
 
 Incoming...
 
+The full documentation is available in the docs folder [here](./doc/md)
+
