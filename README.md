@@ -23,7 +23,7 @@ This package provides the following objects to connect:
 >*The Web client requires a proxy server to run as raw tcp sockets are not available
 > on the browser.
 
-See the [API](#API) section the
+See the [API](#api) section below for more info on each object
 
 ## Running In the Browser
 (Requires a WebProxy to be running as well, see instructions below)
