@@ -57,6 +57,8 @@ export class Client implements FLLScoreClient.IClient {
         this.socket.on('data', (data) => {
             let message = data.toString();
 
+            console.log('[DATA]: ' + message);
+
             // Check for incomplete message, push that onto the buffer and process the rest (if there are any)
             if (!message.endsWith('\r\n')) {
                 const lastLine = message.lastIndexOf('\r\n');
@@ -127,16 +129,26 @@ export class Client implements FLLScoreClient.IClient {
 
         return new Promise<string>((resolve, reject) => {
 
+            const to = setTimeout(() => {
+                console.log('timeout');
+                this.socket.removeListener('error', errorListener);
+                this.removeCallback('welcome', cb);
+                this.socket.emit('close', true);
+                reject(new Error('timeout'));
+            }, 50);
+
             const cb = (data: string) => {
                 const raw = data.trim();
                 this.watchdogInterval = parseInt(raw.substring(raw.indexOf(':') + 1), 10);
                 this.resetConnectionTest();
                 this.socket.removeListener('error', errorListener);
+                clearTimeout(to);
                 resolve('Connected');
             };
 
             const errorListener = (err: Error) => {
                 this.removeCallback('welcome', cb);
+                clearTimeout(to);
                 reject(err);
             };
 
@@ -160,13 +172,22 @@ export class Client implements FLLScoreClient.IClient {
                 reject(new Error('Not Connected'));
             }
 
+            const to = setTimeout(() => {
+                console.log('timeout');
+                this.socket.removeListener('error', errorListener);
+                this.removeCallback('echo', cb);
+                reject(new Error('timeout'));
+            }, 50);
+
             const cb = () => {
                 this.socket.removeListener('error', errorListener);
+                clearTimeout(to);
                 resolve('Echo Received');
             };
 
             const errorListener = (err: Error) => {
                 this.removeCallback('echo', cb);
+                clearTimeout(to);
                 reject(err);
             };
 
@@ -186,18 +207,20 @@ export class Client implements FLLScoreClient.IClient {
                 reject(new Error('Not Connected'));
             }
 
-            const errorListener = (err: Error) => {
-                reject(err);
-            };
+            const to = setTimeout(() => {
+                console.log('timeout');
+                this.socket.removeListener('error', errorListener);
+                this.removeCallback('lastUpdate', cb);
+                reject(new Error('timeout'));
+            }, 50);
 
-            this.socket.once('error', errorListener);
-
-            this.pushCallback('lastUpdate', (data: string) => {
+            const cb = (data: string) => {
                 if (FLLScoreClientConstants.LAST_UPDATE.test(data.toString())) {
                     const raw = data.toString().trim();
                     const response = raw.substring(raw.indexOf(':') + 1);
                     const newDate = new Date(response);
                     this.socket.removeListener('error', errorListener);
+                    clearTimeout(to);
                     if (this.lastUpdate === undefined || newDate.getTime() > this.lastUpdate.getTime()) {
                         this.lastUpdate = newDate;
                         resolve(true);
@@ -206,9 +229,20 @@ export class Client implements FLLScoreClient.IClient {
                     }
                 } else {
                     this.socket.removeListener('error', errorListener);
+                    clearTimeout(to);
                     reject(new Error('Unexpected Message returned: ' + data));
                 }
-            });
+            };
+
+            const errorListener = (err: Error) => {
+                this.removeCallback('lastUpdate', cb);
+                clearTimeout(to);
+                reject(err);
+            };
+
+            this.socket.once('error', errorListener);
+
+            this.pushCallback('lastUpdate', cb);
 
             this.socket.write('Send Last Update:\r\n', () => {
                 this.resetConnectionTest();
@@ -295,14 +329,14 @@ export class Client implements FLLScoreClient.IClient {
                 reject(err);
             };
 
-            this.socket.once('error', errorListener)
+            this.socket.once('error', errorListener);
 
             this.socket.once('close', (hadError) => {
                 if (hadError) {
-                    this.socket.removeListener('error', errorListener)
+                    this.socket.removeListener('error', errorListener);
                     reject(new Error('Closed with error'));
                 } else {
-                    this.socket.removeListener('error', errorListener)
+                    this.socket.removeListener('error', errorListener);
                     resolve('Connection Closed');
                 }
             });
@@ -321,8 +355,8 @@ export class Client implements FLLScoreClient.IClient {
     private removeCallback(key: string, cb: DataCallback): void {
         const arr = this.callbackQueues.get(key);
         if (arr !== undefined) {
-            let index = arr.indexOf(cb, 0);
-            if(index > -1) {
+            const index = arr.indexOf(cb, 0);
+            if (index > -1) {
                 arr.splice(index, 1);
             }
         }

@@ -21,5 +21,6 @@ export declare class Client implements FLLScoreClient.IClient {
     sendScore(): Promise<FLLScoreClient.IScoreInfo>;
     close(): Promise<string>;
     private pushCallback(key, cb);
+    private removeCallback(key, cb);
     private resetConnectionTest();
 }

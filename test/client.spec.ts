@@ -147,7 +147,7 @@ describe('Client', () => {
 
             expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             let promise = client.connect().catch((err) => {
-                expect(err.message).to.equal('Unexpected Message returned: NotWelcome:5\r\n');
+                expect(err.message).to.equal('timeout');
                 expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
                 expect(connectStub).to.have.been.calledOnce;
                 expect(writeStub).to.have.been.calledOnce;
@@ -263,7 +263,7 @@ describe('Client', () => {
             return client.connect().then(() => {
                 return client.sendPing();
             }).catch((err) => {
-                expect(err.message).to.equal('Unexpected Message returned: NotEcho:\r\n');
+                expect(err.message).to.equal('timeout');
                 expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connected);
                 expect(connectStub).to.have.been.calledOnce;
                 expect(writeStub).to.have.been.calledTwice;
@@ -363,7 +363,7 @@ describe('Client', () => {
             return client.connect().then(() => {
                 return client.sendLastUpdate();
             }).catch((err) => {
-                expect(err.message).to.equal('Unexpected Message returned: NotLastUpdate:\r\n');
+                expect(err.message).to.equal('timeout');
                 expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connected);
                 expect(connectStub).to.have.been.calledOnce;
                 expect(writeStub).to.have.been.calledTwice;

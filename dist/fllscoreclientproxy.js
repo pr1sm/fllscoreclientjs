@@ -144,6 +144,7 @@ class Client {
         this.messageBuffer = '';
         this.socket.on('data', (data) => {
             let message = data.toString();
+            console.log('[DATA]: ' + message);
             // Check for incomplete message, push that onto the buffer and process the rest (if there are any)
             if (!message.endsWith('\r\n')) {
                 const lastLine = message.lastIndexOf('\r\n');
@@ -160,6 +161,9 @@ class Client {
                     message = this.messageBuffer + message.substring(0, lastLine + 2);
                     this.messageBuffer = incompleteLine;
                 }
+            }
+            else {
+                message = this.messageBuffer + message;
             }
             // Nothing to process, return
             if (message.length === 0) {
@@ -188,7 +192,6 @@ class Client {
                         if (arr !== undefined) {
                             const cb = arr.shift();
                             if (cb !== undefined) {
-                                console.log('Processing Line as ' + key + ': ' + line);
                                 cb(line);
                             }
                         }
@@ -203,31 +206,33 @@ class Client {
     connect() {
         this.status = FLLScoreClientConstants.ConnectionStatus.Connecting;
         return new Promise((resolve, reject) => {
-            this.status = FLLScoreClientConstants.ConnectionStatus.Connecting;
             const to = setTimeout(() => {
-                clearTimeout(to);
-                this.status = FLLScoreClientConstants.ConnectionStatus.Disconnected;
-                reject(new Error('Timeout'));
+                console.log('timeout');
+                this.socket.removeListener('error', errorListener);
+                this.removeCallback('welcome', cb);
+                this.socket.emit('close', true);
+                reject(new Error('timeout'));
             }, 50);
+            const cb = (data) => {
+                const raw = data.trim();
+                this.watchdogInterval = parseInt(raw.substring(raw.indexOf(':') + 1), 10);
+                this.resetConnectionTest();
+                this.socket.removeListener('error', errorListener);
+                clearTimeout(to);
+                resolve('Connected');
+            };
+            const errorListener = (err) => {
+                this.removeCallback('welcome', cb);
+                clearTimeout(to);
+                reject(err);
+            };
+            this.socket.once('error', errorListener);
             this.socket.connect({
                 host: this.host,
                 port: this.port,
             }, () => {
                 this.status = FLLScoreClientConstants.ConnectionStatus.Connected;
-                this.pushCallback('welcome', (data) => {
-                    if (FLLScoreClientConstants.WELCOME.test(data.toString())) {
-                        const raw = data.toString().trim();
-                        this.watchdogInterval = parseInt(raw.substring(raw.indexOf(':') + 1), 10);
-                        this.resetConnectionTest();
-                        clearTimeout(to);
-                        resolve('Connected');
-                    }
-                    else {
-                        this.status = FLLScoreClientConstants.ConnectionStatus.Disconnected;
-                        clearTimeout(to);
-                        reject(new Error('Unexpected Message returned: ' + data));
-                    }
-                });
+                this.pushCallback('welcome', cb);
                 this.socket.write('FLLScore:' + this.name + '|Primary\r\n');
             });
         });
@@ -238,19 +243,23 @@ class Client {
                 reject(new Error('Not Connected'));
             }
             const to = setTimeout(() => {
-                clearTimeout(to);
-                reject(new Error('Timeout'));
+                console.log('timeout');
+                this.socket.removeListener('error', errorListener);
+                this.removeCallback('echo', cb);
+                reject(new Error('timeout'));
             }, 50);
-            this.pushCallback('echo', (data) => {
-                if (FLLScoreClientConstants.ECHO.test(data.toString())) {
-                    clearTimeout(to);
-                    resolve('Echo Received');
-                }
-                else {
-                    clearTimeout(to);
-                    reject(new Error('Unexpected Message returned: ' + data));
-                }
-            });
+            const cb = () => {
+                this.socket.removeListener('error', errorListener);
+                clearTimeout(to);
+                resolve('Echo Received');
+            };
+            const errorListener = (err) => {
+                this.removeCallback('echo', cb);
+                clearTimeout(to);
+                reject(err);
+            };
+            this.socket.once('error', errorListener);
+            this.pushCallback('echo', cb);
             this.socket.write('Ping:\r\n', () => {
                 this.resetConnectionTest();
             });
@@ -262,14 +271,17 @@ class Client {
                 reject(new Error('Not Connected'));
             }
             const to = setTimeout(() => {
-                clearTimeout(to);
-                reject(new Error('Timeout'));
+                console.log('timeout');
+                this.socket.removeListener('error', errorListener);
+                this.removeCallback('lastUpdate', cb);
+                reject(new Error('timeout'));
             }, 50);
-            this.pushCallback('lastUpdate', (data) => {
+            const cb = (data) => {
                 if (FLLScoreClientConstants.LAST_UPDATE.test(data.toString())) {
                     const raw = data.toString().trim();
                     const response = raw.substring(raw.indexOf(':') + 1);
                     const newDate = new Date(response);
+                    this.socket.removeListener('error', errorListener);
                     clearTimeout(to);
                     if (this.lastUpdate === undefined || newDate.getTime() > this.lastUpdate.getTime()) {
                         this.lastUpdate = newDate;
@@ -280,10 +292,18 @@ class Client {
                     }
                 }
                 else {
+                    this.socket.removeListener('error', errorListener);
                     clearTimeout(to);
                     reject(new Error('Unexpected Message returned: ' + data));
                 }
-            });
+            };
+            const errorListener = (err) => {
+                this.removeCallback('lastUpdate', cb);
+                clearTimeout(to);
+                reject(err);
+            };
+            this.socket.once('error', errorListener);
+            this.pushCallback('lastUpdate', cb);
             this.socket.write('Send Last Update:\r\n', () => {
                 this.resetConnectionTest();
             });
@@ -293,7 +313,10 @@ class Client {
         return new Promise((resolve, reject) => {
             let scheduleInfo;
             const teamInfo = [];
-            const scoreDoneCallback = (value) => {
+            const errorListener = (err) => {
+                reject(err);
+            };
+            const scoreDoneCallback = () => {
                 const teamDiff = scheduleInfo.numberOfTeams - teamInfo.length;
                 if (teamDiff > 0) {
                     console.log('WARNING: only received ' +
@@ -304,7 +327,7 @@ class Client {
                     }
                 }
                 this.scoreInfo = { scheduleInfo, teamInfo };
-                clearTimeout(to);
+                this.socket.removeListener('error', errorListener);
                 resolve(this.scoreInfo);
             };
             const scoreCallback = (value) => {
@@ -333,12 +356,10 @@ class Client {
                 }
             };
             if (this.status !== FLLScoreClientConstants.ConnectionStatus.Connected) {
+                this.socket.removeListener('error', errorListener);
                 reject(new Error('Not Connected'));
             }
-            const to = setTimeout(() => {
-                clearTimeout(to);
-                reject(new Error('Timeout'));
-            }, 50);
+            this.socket.once('error', errorListener);
             this.pushCallback('scoreHeader', scoreHeaderCallback);
             this.pushCallback('scoreDone', scoreDoneCallback);
             this.socket.write('Send Score:\r\n', () => {
@@ -351,16 +372,17 @@ class Client {
             if (this.status !== FLLScoreClientConstants.ConnectionStatus.Connected) {
                 reject(new Error('Not Connected'));
             }
-            const to = setTimeout(() => {
-                clearTimeout(to);
-                reject(new Error('Timeout'));
-            }, 50);
+            const errorListener = (err) => {
+                reject(err);
+            };
+            this.socket.once('error', errorListener);
             this.socket.once('close', (hadError) => {
                 if (hadError) {
+                    this.socket.removeListener('error', errorListener);
                     reject(new Error('Closed with error'));
                 }
                 else {
-                    clearTimeout(to);
+                    this.socket.removeListener('error', errorListener);
                     resolve('Connection Closed');
                 }
             });
@@ -371,6 +393,15 @@ class Client {
         const arr = this.callbackQueues.get(key);
         if (arr !== undefined) {
             arr.push(cb);
+        }
+    }
+    removeCallback(key, cb) {
+        const arr = this.callbackQueues.get(key);
+        if (arr !== undefined) {
+            const index = arr.indexOf(cb, 0);
+            if (index > -1) {
+                arr.splice(index, 1);
+            }
         }
     }
     resetConnectionTest() {
