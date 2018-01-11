@@ -16,9 +16,9 @@ describe('Client', () => {
         it('should construct with no parameters', () => {
             let client = new Client();
 
-            expect(client.host).to.equal('localhost');
-            expect(client.port).to.equal(25002);
-            expect(client.name).to.equal('FLLScoreClient');
+            expect(client.opts.host).to.equal('localhost');
+            expect(client.opts.port).to.equal(25002);
+            expect(client.opts.name).to.equal('FLLScoreClient');
             expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             expect(client.lastUpdate).to.be.undefined;
             expect(client.scoreInfo).to.be.undefined;
@@ -28,9 +28,9 @@ describe('Client', () => {
         it('should construct with host', () => {
             let client = new Client({host: 'new-host'});
 
-            expect(client.host).to.equal('new-host');
-            expect(client.port).to.equal(25002);
-            expect(client.name).to.equal('FLLScoreClient');
+            expect(client.opts.host).to.equal('new-host');
+            expect(client.opts.port).to.equal(25002);
+            expect(client.opts.name).to.equal('FLLScoreClient');
             expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             expect(client.lastUpdate).to.be.undefined;
             expect(client.scoreInfo).to.be.undefined;
@@ -40,9 +40,9 @@ describe('Client', () => {
         it('should construct with host and port', () => {
             let client = new Client({host: 'new-host', port: 8080});
 
-            expect(client.host).to.equal('new-host');
-            expect(client.port).to.equal(8080);
-            expect(client.name).to.equal('FLLScoreClient');
+            expect(client.opts.host).to.equal('new-host');
+            expect(client.opts.port).to.equal(8080);
+            expect(client.opts.name).to.equal('FLLScoreClient');
             expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             expect(client.lastUpdate).to.be.undefined;
             expect(client.scoreInfo).to.be.undefined;
@@ -52,9 +52,9 @@ describe('Client', () => {
         it('should construct with host, port and name', () => {
             let client = new Client({host: 'new-host', port: 8080, name: 'new-name'});
 
-            expect(client.host).to.equal('new-host');
-            expect(client.port).to.equal(8080);
-            expect(client.name).to.equal('new-name');
+            expect(client.opts.host).to.equal('new-host');
+            expect(client.opts.port).to.equal(8080);
+            expect(client.opts.name).to.equal('new-name');
             expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             expect(client.lastUpdate).to.be.undefined;
             expect(client.scoreInfo).to.be.undefined;
@@ -617,7 +617,6 @@ describe('Client', () => {
         let clearIntervalSpy;
 
         beforeEach(() => {
-
             this.clock = sinon.useFakeTimers();
 
             setIntervalSpy = sinon.spy(this.clock, 'setInterval');

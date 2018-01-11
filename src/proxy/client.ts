@@ -6,16 +6,36 @@ import Timer = NodeJS.Timer;
 type DataCallback = (str: string) => void;
 
 export class Client implements FLLScoreClient.IClient {
+    private static defaults(src: FLLScoreClient.IClientOpts,
+                            def: FLLScoreClient.IClientOpts): FLLScoreClient.IClientOpts {
+        const val = def;
+        if (src.host !== undefined) {
+            val.host = src.host;
+        }
+        if (src.name !== undefined) {
+            val.name = src.name;
+        }
+        if (src.port !== undefined) {
+            val.port = src.port;
+        }
+        if (src.useWatchdog !== undefined) {
+            val.useWatchdog = src.useWatchdog;
+        }
 
-    public host: string = 'localhost';
-    public port: number = 25002;
-    public name: string = 'FLLScoreClient';
+        return val;
+    }
+
     public lastUpdate?: Date;
+    public opts: FLLScoreClient.IClientOpts = {
+        host: 'localhost',
+        name: 'FLLScoreClient',
+        port: 25002,
+        useWatchdog: true,
+    };
     public scoreInfo?: FLLScoreClient.IScoreInfo;
     public status: number;
     public socket: Socket;
 
-    private useWatchdog: boolean = true;
     private watchdogInterval: number;
     private connTest?: Timer;
     private callbackQueues: Map<string, DataCallback[]>;
@@ -23,10 +43,7 @@ export class Client implements FLLScoreClient.IClient {
 
     constructor(opts?: FLLScoreClient.IClientOpts) {
         if (opts !== undefined) {
-            this.host = opts.host || this.host;
-            this.port = opts.port || this.port;
-            this.name = opts.name || this.name;
-            this.useWatchdog = opts.useWatchdog !== undefined ? opts.useWatchdog : this.useWatchdog;
+            this.opts = Client.defaults(opts, this.opts);
         }
 
         this.lastUpdate = undefined;
@@ -152,13 +169,13 @@ export class Client implements FLLScoreClient.IClient {
             this.socket.once('error', errorListener);
 
             this.socket.connect({
-                host: this.host,
-                port: this.port,
+                host: this.opts.host!,
+                port: this.opts.port!,
             }, () => {
                 this.status = FLLScoreClientConstants.ConnectionStatus.Connected;
 
                 this.pushCallback('welcome', cb);
-                this.socket.write('FLLScore:' + this.name + '|Primary\r\n');
+                this.socket.write('FLLScore:' + this.opts.name + '|Primary\r\n');
             });
         });
     }
@@ -317,7 +334,7 @@ export class Client implements FLLScoreClient.IClient {
     public close(): Promise<string> {
         return new Promise<string>((resolve, reject) => {
             if (this.status !== FLLScoreClientConstants.ConnectionStatus.Connected) {
-                reject(new Error('Not Connected'));
+                resolve('Connection Closed');
             }
 
             const errorListener = (err: Error) => {
@@ -362,7 +379,7 @@ export class Client implements FLLScoreClient.IClient {
             clearInterval(this.connTest);
         }
 
-        if (!this.useWatchdog) {
+        if (!this.opts.useWatchdog) {
             return;
         }
 

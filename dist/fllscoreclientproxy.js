@@ -110,15 +110,14 @@ const net_1 = __webpack_require__(3);
 const FLLScoreClientConstants = __webpack_require__(4);
 class Client {
     constructor(opts) {
-        this.host = 'localhost';
-        this.port = 25002;
-        this.name = 'FLLScoreClient';
-        this.useWatchdog = true;
+        this.opts = {
+            host: 'localhost',
+            name: 'FLLScoreClient',
+            port: 25002,
+            useWatchdog: true,
+        };
         if (opts !== undefined) {
-            this.host = opts.host || this.host;
-            this.port = opts.port || this.port;
-            this.name = opts.name || this.name;
-            this.useWatchdog = opts.useWatchdog !== undefined ? opts.useWatchdog : this.useWatchdog;
+            this.opts = Client.defaults(opts, this.opts);
         }
         this.lastUpdate = undefined;
         this.scoreInfo = undefined;
@@ -202,6 +201,22 @@ class Client {
             });
         });
     }
+    static defaults(src, def) {
+        const val = def;
+        if (src.host !== undefined) {
+            val.host = src.host;
+        }
+        if (src.name !== undefined) {
+            val.name = src.name;
+        }
+        if (src.port !== undefined) {
+            val.port = src.port;
+        }
+        if (src.useWatchdog !== undefined) {
+            val.useWatchdog = src.useWatchdog;
+        }
+        return val;
+    }
     connect() {
         this.status = FLLScoreClientConstants.ConnectionStatus.Connecting;
         return new Promise((resolve, reject) => {
@@ -226,12 +241,12 @@ class Client {
             };
             this.socket.once('error', errorListener);
             this.socket.connect({
-                host: this.host,
-                port: this.port,
+                host: this.opts.host,
+                port: this.opts.port,
             }, () => {
                 this.status = FLLScoreClientConstants.ConnectionStatus.Connected;
                 this.pushCallback('welcome', cb);
-                this.socket.write('FLLScore:' + this.name + '|Primary\r\n');
+                this.socket.write('FLLScore:' + this.opts.name + '|Primary\r\n');
             });
         });
     }
@@ -366,7 +381,7 @@ class Client {
     close() {
         return new Promise((resolve, reject) => {
             if (this.status !== FLLScoreClientConstants.ConnectionStatus.Connected) {
-                reject(new Error('Not Connected'));
+                resolve('Connection Closed');
             }
             const errorListener = (err) => {
                 reject(err);
@@ -404,7 +419,7 @@ class Client {
         if (this.connTest !== undefined) {
             clearInterval(this.connTest);
         }
-        if (!this.useWatchdog) {
+        if (!this.opts.useWatchdog) {
             return;
         }
         this.connTest = setInterval(() => {
@@ -476,31 +491,111 @@ const io = __webpack_require__(8);
 const index_1 = __webpack_require__(0);
 class WebProxy {
     constructor(opts) {
-        this.host = 'localhost';
-        this.infoPollingRate = 30;
-        this.port = 25002;
-        this.servePort = 25003;
-        this.name = 'FLLScoreClient';
-        this.useWatchdog = true;
+        this.opts = {
+            infoPollingRate: 30,
+            servePort: 25003,
+            socketOpts: {
+                host: 'localhost',
+                name: 'FLLScoreClient',
+                port: 25002,
+                useWatchdog: true,
+            },
+        };
         if (opts !== undefined) {
-            this.host = opts.host || this.host;
-            this.infoPollingRate = opts.infoPollingRate || this.infoPollingRate;
-            this.port = opts.port || this.port;
-            this.servePort = opts.servePort || this.servePort;
-            this.name = opts.name || this.name;
-            this.useWatchdog = opts.useWatchdog || this.useWatchdog;
+            this.opts = WebProxy.defaults(opts, this.opts);
         }
-        if (this.port === this.servePort) {
-            this.servePort = this.port + 1;
+        this.clients = [];
+        this.infoPollingRate = this.opts.infoPollingRate;
+        this.servePort = this.opts.servePort;
+        this.socketOpts = this.opts.socketOpts;
+        this.fllclient = this.opts.socket;
+        if (this.fllclient === undefined) {
+            this.fllclient = index_1.createClient(this.socketOpts);
         }
-        this.fllclient = index_1.createClient({
-            host: this.host,
-            name: this.name,
-            port: this.port,
-            useWatchdog: this.useWatchdog,
-        });
         this.server = io();
+    }
+    static defaults(src, def) {
+        const val = def;
+        if (src.infoPollingRate !== undefined) {
+            val.infoPollingRate = src.infoPollingRate;
+        }
+        if (src.socket !== undefined) {
+            val.socket = src.socket;
+            val.socketOpts = src.socket.opts;
+        }
+        else if (src.socketOpts !== undefined) {
+            const valOpts = def.socketOpts;
+            if (src.socketOpts.host !== undefined) {
+                valOpts.host = src.socketOpts.host;
+            }
+            if (src.socketOpts.name !== undefined) {
+                valOpts.name = src.socketOpts.name;
+            }
+            if (src.socketOpts.port !== undefined) {
+                valOpts.port = src.socketOpts.port;
+            }
+            if (src.socketOpts.useWatchdog !== undefined) {
+                valOpts.useWatchdog = src.socketOpts.useWatchdog;
+            }
+            val.socketOpts = valOpts;
+        }
+        if (src.servePort !== undefined) {
+            val.servePort = src.servePort;
+        }
+        if (val.servePort === val.socketOpts.port) {
+            val.servePort = val.socketOpts.port + 1;
+        }
+        return val;
+    }
+    startProxy() {
+        return new Promise((resolve) => {
+            this.fllclient.connect().then(() => {
+                this.fllclient.socket.on('data', (data) => {
+                    console.log('Received:\n\t' + data.toString().trim());
+                });
+                this.pollTest = setInterval(() => {
+                    this.fllclient.sendLastUpdate().then((updated) => {
+                        if (updated) {
+                            return this.fllclient.sendScore();
+                        }
+                        else {
+                            return Promise.resolve(undefined);
+                        }
+                    }).then((info) => {
+                        if (info !== undefined) {
+                            this.server.emit('lastUpdate', this.fllclient.lastUpdate);
+                            this.server.emit('scoreInfo', info);
+                        }
+                    }).catch((err) => {
+                        // TODO: Deal with error
+                        console.log(err);
+                    });
+                }, this.infoPollingRate * 1000);
+                this.setupClientListener();
+                this.server.listen(this.servePort);
+                resolve(true);
+            }).catch(() => {
+                resolve(false);
+            });
+        });
+    }
+    stopProxy() {
+        if (this.pollTest !== undefined) {
+            console.log('stopping interval');
+            clearInterval(this.pollTest);
+        }
+        this.closeConnections();
+        return this.fllclient.close();
+    }
+    closeConnections() {
+        this.clients.forEach((client) => {
+            client.disconnect(true);
+        });
+        this.clients = [];
+    }
+    setupClientListener() {
         this.server.on('connection', (client) => {
+            this.clients.push(client);
             if (this.fllclient.lastUpdate !== undefined) {
                 client.emit('lastUpdate', this.fllclient.lastUpdate.toISOString());
             }
@@ -545,36 +640,8 @@ class WebProxy {
                     cb(new Error('invalid command'));
                 }
             });
-        });
-    }
-    startProxy() {
-        return new Promise((resolve) => {
-            this.fllclient.connect().then(() => {
-                this.fllclient.socket.on('data', (data) => {
-                    console.log('Received:\n\t' + data.toString().trim());
-                });
-                this.pollTest = setInterval(() => {
-                    this.fllclient.sendLastUpdate().then((updated) => {
-                        if (updated) {
-                            return this.fllclient.sendScore();
-                        }
-                        else {
-                            return Promise.resolve(undefined);
-                        }
-                    }).then((info) => {
-                        if (info !== undefined) {
-                            this.server.emit('lastUpdate', this.fllclient.lastUpdate);
-                            this.server.emit('scoreInfo', info);
-                        }
-                    }).catch((err) => {
-                        // TODO: Deal with error
-                        console.log(err);
-                    });
-                }, this.infoPollingRate * 1000);
-                this.server.listen(this.servePort);
-                resolve(true);
-            }).catch(() => {
-                resolve(false);
+            client.on('close', () => {
+                this.clients.splice(this.clients.indexOf(client), 1);
             });
         });
     }

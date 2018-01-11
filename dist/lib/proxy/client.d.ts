@@ -2,14 +2,12 @@
 import { Socket } from 'net';
 import { FLLScoreClient } from '../shared/interface';
 export declare class Client implements FLLScoreClient.IClient {
-    host: string;
-    port: number;
-    name: string;
+    private static defaults(src, def);
     lastUpdate?: Date;
+    opts: FLLScoreClient.IClientOpts;
     scoreInfo?: FLLScoreClient.IScoreInfo;
     status: number;
     socket: Socket;
-    private useWatchdog;
     private watchdogInterval;
     private connTest?;
     private callbackQueues;

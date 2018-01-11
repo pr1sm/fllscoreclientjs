@@ -6,7 +6,7 @@ function createClient(opts?: FLLScoreClient.IClientOpts): FLLScoreClient.IClient
     return new Client(opts);
 }
 
-function createWebProxy(opts?: FLLScoreClient.IWebProxyOpts): WebProxy {
+function createWebProxy(opts?: FLLScoreClient.IWebProxyOpts): FLLScoreClient.IWebProxy {
     return new WebProxy(opts);
 }
 

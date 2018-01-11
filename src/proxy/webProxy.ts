@@ -2,41 +2,133 @@ import * as io from 'socket.io';
 import {FLLScoreClient} from '../shared/interface';
 import {createClient} from './index';
 
-export class WebProxy {
-    public readonly host: string = 'localhost';
-    public readonly infoPollingRate: number = 30;
-    public readonly port: number = 25002;
-    public readonly servePort: number = 25003;
-    public readonly name: string = 'FLLScoreClient';
+export class WebProxy implements FLLScoreClient.IWebProxy {
+    private static defaults(src: FLLScoreClient.IWebProxyOpts,
+                            def: FLLScoreClient.IWebProxyOpts): FLLScoreClient.IWebProxyOpts {
+        const val = def;
+        if (src.infoPollingRate !== undefined) {
+            val.infoPollingRate = src.infoPollingRate;
+        }
+        if (src.socket !== undefined) {
+            val.socket = src.socket;
+            val.socketOpts = src.socket.opts;
+        } else if (src.socketOpts !== undefined) {
+            const valOpts = def.socketOpts!;
+            if (src.socketOpts.host !== undefined) {
+                valOpts.host = src.socketOpts.host;
+            }
+            if (src.socketOpts.name !== undefined) {
+                valOpts.name = src.socketOpts.name;
+            }
+            if (src.socketOpts.port !== undefined) {
+                valOpts.port = src.socketOpts.port;
+            }
+            if (src.socketOpts.useWatchdog !== undefined) {
+                valOpts.useWatchdog = src.socketOpts.useWatchdog;
+            }
+            val.socketOpts = valOpts;
+        }
+        if (src.servePort !== undefined) {
+            val.servePort = src.servePort;
+        }
+        if (val.servePort === val.socketOpts!.port) {
+            val.servePort = val.socketOpts!.port! + 1;
+        }
 
-    private server: SocketIO.Server;
+        return val;
+    }
+
+    public readonly infoPollingRate: number;
+    public readonly servePort: number;
+    public readonly socketOpts: FLLScoreClient.IClientOpts;
+    public server: SocketIO.Server;
+
+    private clients: SocketIO.Socket[];
+    private opts: FLLScoreClient.IWebProxyOpts = {
+        infoPollingRate: 30,
+        servePort: 25003,
+        socketOpts: {
+            host: 'localhost',
+            name: 'FLLScoreClient',
+            port: 25002,
+            useWatchdog: true,
+        },
+    };
     private fllclient: FLLScoreClient.IClient;
-    private useWatchdog: boolean = true;
     private pollTest?: NodeJS.Timer;
 
     constructor(opts?: FLLScoreClient.IWebProxyOpts) {
         if (opts !== undefined) {
-            this.host = opts.host || this.host;
-            this.infoPollingRate = opts.infoPollingRate || this.infoPollingRate;
-            this.port = opts.port || this.port;
-            this.servePort = opts.servePort || this.servePort;
-            this.name = opts.name || this.name;
-            this.useWatchdog = opts.useWatchdog || this.useWatchdog;
+            this.opts = WebProxy.defaults(opts, this.opts);
         }
 
-        if (this.port === this.servePort) {
-            this.servePort = this.port + 1;
-        }
+        this.clients = [];
+        this.infoPollingRate = this.opts!.infoPollingRate!;
+        this.servePort = this.opts!.servePort!;
+        this.socketOpts = this.opts!.socketOpts!;
+        this.fllclient = this.opts!.socket!;
 
-        this.fllclient = createClient({
-            host: this.host,
-            name: this.name,
-            port: this.port,
-            useWatchdog: this.useWatchdog,
-        });
+        if (this.fllclient === undefined) {
+            this.fllclient = createClient(this.socketOpts);
+        }
 
         this.server = io();
+    }
+
+    public startProxy(): Promise<boolean> {
+        return new Promise<boolean>((resolve) => {
+            this.fllclient.connect().then(() => {
+                this.fllclient.socket.on('data', (data) => {
+                    console.log('Received:\n\t' + data.toString().trim());
+                });
+
+                this.pollTest = setInterval(() => {
+                    this.fllclient.sendLastUpdate().then((updated: boolean) => {
+                        if (updated) {
+                            return this.fllclient.sendScore();
+                        } else {
+                            return Promise.resolve(undefined);
+                        }
+                    }).then((info?: FLLScoreClient.IScoreInfo) => {
+                        if (info !== undefined) {
+                            this.server.emit('lastUpdate', this.fllclient.lastUpdate);
+                            this.server.emit('scoreInfo', info);
+                        }
+                    }).catch((err: Error) => {
+                        // TODO: Deal with error
+                        console.log(err);
+                    });
+                }, this.infoPollingRate * 1000);
+
+                this.setupClientListener();
+
+                this.server.listen(this.servePort);
+                resolve(true);
+            }).catch(() => {
+                resolve(false);
+            });
+        });
+    }
+
+    public stopProxy(): Promise<string> {
+        if (this.pollTest !== undefined) {
+            console.log('stopping interval');
+            clearInterval(this.pollTest);
+        }
+        this.closeConnections();
+        return this.fllclient.close();
+    }
+
+    private closeConnections() {
+        this.clients.forEach((client: SocketIO.Socket) => {
+            client.disconnect(true);
+        });
+        this.clients = [];
+    }
+
+    private setupClientListener() {
         this.server.on('connection', (client: SocketIO.Socket) => {
+            this.clients.push(client);
             if (this.fllclient.lastUpdate !== undefined) {
                 client.emit('lastUpdate', this.fllclient.lastUpdate.toISOString());
             }
@@ -80,37 +172,9 @@ export class WebProxy {
                     cb(new Error('invalid command'));
                 }
             });
-        });
-    }
 
-    public startProxy(): Promise<boolean> {
-        return new Promise<boolean>((resolve) => {
-            this.fllclient.connect().then(() => {
-                this.fllclient.socket.on('data', (data) => {
-                    console.log('Received:\n\t' + data.toString().trim());
-                });
-
-                this.pollTest = setInterval(() => {
-                    this.fllclient.sendLastUpdate().then((updated: boolean) => {
-                        if (updated) {
-                            return this.fllclient.sendScore();
-                        } else {
-                            return Promise.resolve(undefined);
-                        }
-                    }).then((info?: FLLScoreClient.IScoreInfo) => {
-                        if (info !== undefined) {
-                            this.server.emit('lastUpdate', this.fllclient.lastUpdate);
-                            this.server.emit('scoreInfo', info);
-                        }
-                    }).catch((err: Error) => {
-                        // TODO: Deal with error
-                        console.log(err);
-                    });
-                }, this.infoPollingRate * 1000);
-                this.server.listen(this.servePort);
-                resolve(true);
-            }).catch(() => {
-                resolve(false);
+            client.on('close', () => {
+                this.clients.splice(this.clients.indexOf(client), 1);
             });
         });
     }

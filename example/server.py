@@ -93,7 +93,7 @@ class ClientHandlerThread(threading.Thread):
 
         elif command == 'Send Last Update':
             _now = datetime.datetime.now()
-            if(_now.minute != self._client_time.minute) :
+            if _now.second != self._client_time.second :
                 self._client_time = _now
 
             self._client_socket.send('Last Update:{}\r\n'.format(self._client_time.strftime('%m/%d/%Y %I:%M:%S %p')))
