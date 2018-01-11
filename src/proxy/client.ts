@@ -73,6 +73,8 @@ export class Client implements FLLScoreClient.IClient {
                     message = this.messageBuffer + message.substring(0, lastLine + 2);
                     this.messageBuffer = incompleteLine;
                 }
+            } else {
+                message = this.messageBuffer + message;
             }
 
             // Nothing to process, return
@@ -121,36 +123,32 @@ export class Client implements FLLScoreClient.IClient {
     }
 
     public connect(): Promise<string> {
-
         this.status = FLLScoreClientConstants.ConnectionStatus.Connecting;
 
         return new Promise<string>((resolve, reject) => {
-            this.status = FLLScoreClientConstants.ConnectionStatus.Connecting;
 
-            const to = setTimeout(() => {
-                clearTimeout(to);
-                this.status = FLLScoreClientConstants.ConnectionStatus.Disconnected;
-                reject(new Error('Timeout'));
-            }, 50);
+            const cb = (data: string) => {
+                const raw = data.trim();
+                this.watchdogInterval = parseInt(raw.substring(raw.indexOf(':') + 1), 10);
+                this.resetConnectionTest();
+                this.socket.removeListener('error', errorListener);
+                resolve('Connected');
+            };
+
+            const errorListener = (err: Error) => {
+                this.removeCallback('welcome', cb);
+                reject(err);
+            };
+
+            this.socket.once('error', errorListener);
 
             this.socket.connect({
                 host: this.host,
                 port: this.port,
             }, () => {
                 this.status = FLLScoreClientConstants.ConnectionStatus.Connected;
-                this.pushCallback('welcome', (data: string) => {
-                    if (FLLScoreClientConstants.WELCOME.test(data.toString())) {
-                        const raw = data.toString().trim();
-                        this.watchdogInterval = parseInt(raw.substring(raw.indexOf(':') + 1), 10);
-                        this.resetConnectionTest();
-                        clearTimeout(to);
-                        resolve('Connected');
-                    } else {
-                        this.status = FLLScoreClientConstants.ConnectionStatus.Disconnected;
-                        clearTimeout(to);
-                        reject(new Error('Unexpected Message returned: ' + data));
-                    }
-                });
+
+                this.pushCallback('welcome', cb);
                 this.socket.write('FLLScore:' + this.name + '|Primary\r\n');
             });
         });
@@ -162,20 +160,19 @@ export class Client implements FLLScoreClient.IClient {
                 reject(new Error('Not Connected'));
             }
 
-            const to = setTimeout(() => {
-                clearTimeout(to);
-                reject(new Error('Timeout'));
-            }, 50);
+            const cb = () => {
+                this.socket.removeListener('error', errorListener);
+                resolve('Echo Received');
+            };
 
-            this.pushCallback('echo', (data: string) => {
-                if (FLLScoreClientConstants.ECHO.test(data.toString())) {
-                    clearTimeout(to);
-                    resolve('Echo Received');
-                } else {
-                    clearTimeout(to);
-                    reject(new Error('Unexpected Message returned: ' + data));
-                }
-            });
+            const errorListener = (err: Error) => {
+                this.removeCallback('echo', cb);
+                reject(err);
+            };
+
+            this.socket.once('error', errorListener);
+
+            this.pushCallback('echo', cb);
 
             this.socket.write('Ping:\r\n', () => {
                 this.resetConnectionTest();
@@ -189,17 +186,18 @@ export class Client implements FLLScoreClient.IClient {
                 reject(new Error('Not Connected'));
             }
 
-            const to = setTimeout(() => {
-                clearTimeout(to);
-                reject(new Error('Timeout'));
-            }, 50);
+            const errorListener = (err: Error) => {
+                reject(err);
+            };
+
+            this.socket.once('error', errorListener);
 
             this.pushCallback('lastUpdate', (data: string) => {
                 if (FLLScoreClientConstants.LAST_UPDATE.test(data.toString())) {
                     const raw = data.toString().trim();
                     const response = raw.substring(raw.indexOf(':') + 1);
                     const newDate = new Date(response);
-                    clearTimeout(to);
+                    this.socket.removeListener('error', errorListener);
                     if (this.lastUpdate === undefined || newDate.getTime() > this.lastUpdate.getTime()) {
                         this.lastUpdate = newDate;
                         resolve(true);
@@ -207,7 +205,7 @@ export class Client implements FLLScoreClient.IClient {
                         resolve(false);
                     }
                 } else {
-                    clearTimeout(to);
+                    this.socket.removeListener('error', errorListener);
                     reject(new Error('Unexpected Message returned: ' + data));
                 }
             });
@@ -224,7 +222,11 @@ export class Client implements FLLScoreClient.IClient {
             let scheduleInfo: FLLScoreClient.IScheduleInfo;
             const teamInfo: FLLScoreClient.ITeamInfo[] = [];
 
-            const scoreDoneCallback = (value: string) => {
+            const errorListener = (err: Error) => {
+                reject(err);
+            };
+
+            const scoreDoneCallback = () => {
                 const teamDiff = scheduleInfo.numberOfTeams - teamInfo.length;
                 if (teamDiff > 0) {
                     console.log('WARNING: only received ' +
@@ -235,7 +237,7 @@ export class Client implements FLLScoreClient.IClient {
                     }
                 }
                 this.scoreInfo = { scheduleInfo, teamInfo };
-                clearTimeout(to);
+                this.socket.removeListener('error', errorListener);
                 resolve(this.scoreInfo);
             };
 
@@ -268,13 +270,11 @@ export class Client implements FLLScoreClient.IClient {
             };
 
             if (this.status !== FLLScoreClientConstants.ConnectionStatus.Connected) {
+                this.socket.removeListener('error', errorListener);
                 reject(new Error('Not Connected'));
             }
 
-            const to = setTimeout(() => {
-                clearTimeout(to);
-                reject(new Error('Timeout'));
-            }, 50);
+            this.socket.once('error', errorListener);
 
             this.pushCallback('scoreHeader', scoreHeaderCallback);
             this.pushCallback('scoreDone', scoreDoneCallback);
@@ -291,16 +291,18 @@ export class Client implements FLLScoreClient.IClient {
                 reject(new Error('Not Connected'));
             }
 
-            const to = setTimeout(() => {
-                clearTimeout(to);
-                reject(new Error('Timeout'));
-            }, 50);
+            const errorListener = (err: Error) => {
+                reject(err);
+            };
+
+            this.socket.once('error', errorListener)
 
             this.socket.once('close', (hadError) => {
                 if (hadError) {
+                    this.socket.removeListener('error', errorListener)
                     reject(new Error('Closed with error'));
                 } else {
-                    clearTimeout(to);
+                    this.socket.removeListener('error', errorListener)
                     resolve('Connection Closed');
                 }
             });
@@ -313,6 +315,16 @@ export class Client implements FLLScoreClient.IClient {
         const arr = this.callbackQueues.get(key);
         if (arr !== undefined) {
             arr.push(cb);
+        }
+    }
+
+    private removeCallback(key: string, cb: DataCallback): void {
+        const arr = this.callbackQueues.get(key);
+        if (arr !== undefined) {
+            let index = arr.indexOf(cb, 0);
+            if(index > -1) {
+                arr.splice(index, 1);
+            }
         }
     }
 

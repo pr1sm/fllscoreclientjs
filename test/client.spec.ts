@@ -71,7 +71,7 @@ describe('Client', () => {
             client = new Client({host: 'localhost', port: 25002, name: 'UnitTest', useWatchdog: false});
         });
 
-        it('should resolve on successful connect', (done) => {
+        it('should resolve on successful connect', () => {
 
             connectStub = sinon.stub(client.socket, 'connect');
             connectStub.callsFake((options, cb) => {
@@ -88,7 +88,7 @@ describe('Client', () => {
             });
 
             expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
-            client.connect().then((res) => {
+            let promise = client.connect().then((res) => {
                 expect(res).to.equal('Connected');
                 expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connected);
                 expect(connectStub).to.have.been.calledOnce;
@@ -96,18 +96,19 @@ describe('Client', () => {
                 expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
                 connectStub.restore();
                 writeStub.restore();
-                done();
             });
             expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connecting);
+            return promise;
         });
 
-        it('should reject when an connect error occurs', (done) => {
+        it('should reject when an connect error occurs', () => {
             connectStub = sinon.stub(client.socket, 'connect');
             connectStub.callsFake((options) => {
                 expect(options.port).to.equal(25002);
                 expect(options.host).to.equal('localhost');
                 setTimeout(() => {
                     client.socket.emit('error', new Error('connect error'));
+                    client.socket.emit('close', false);
                 }, 1);
             });
 
@@ -117,19 +118,19 @@ describe('Client', () => {
             });
 
             expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
-            client.connect().catch((err) => {
+            let promise = client.connect().catch((err) => {
                 expect(err.message).to.equal('connect error');
                 expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
                 expect(connectStub).to.have.been.calledOnce;
                 expect(writeStub).not.to.have.been.calledOnce;
                 connectStub.restore();
                 writeStub.restore();
-                done();
             });
             expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connecting);
+            return promise;
         });
 
-        it('should reject when a wrong welcome message is returned', (done) => {
+        it('should reject when a wrong welcome message is returned', () => {
             connectStub = sinon.stub(client.socket, 'connect');
             connectStub.callsFake((options, cb) => {
                 expect(options.port).to.equal(25002);
@@ -145,7 +146,7 @@ describe('Client', () => {
             });
 
             expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
-            client.connect().catch((err) => {
+            let promise = client.connect().catch((err) => {
                 expect(err.message).to.equal('Unexpected Message returned: NotWelcome:5\r\n');
                 expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
                 expect(connectStub).to.have.been.calledOnce;
@@ -153,9 +154,9 @@ describe('Client', () => {
                 expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
                 connectStub.restore();
                 writeStub.restore();
-                done();
             });
             expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connecting);
+            return promise;
         });
     });
 
@@ -227,6 +228,7 @@ describe('Client', () => {
 
             expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
             return client.connect().then(() => {
+                expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connected);
                 return client.sendPing();
             }).catch((err) => {
                 expect(err.message).to.equal('send error');
@@ -306,7 +308,7 @@ describe('Client', () => {
                 return client.sendLastUpdate();
             }).then((res) => {
                 let date = new Date('11/10/2017 7:52:40 AM');
-                expect(res).to.equalDate(date);
+                expect(res).to.be.true;
                 expect(client.lastUpdate).to.equalDate(date);
                 expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connected);
                 expect(connectStub).to.have.been.calledOnce;
