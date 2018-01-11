@@ -57,8 +57,6 @@ export class Client implements FLLScoreClient.IClient {
         this.socket.on('data', (data) => {
             let message = data.toString();
 
-            console.log('[DATA]: ' + message);
-
             // Check for incomplete message, push that onto the buffer and process the rest (if there are any)
             if (!message.endsWith('\r\n')) {
                 const lastLine = message.lastIndexOf('\r\n');
@@ -118,7 +116,7 @@ export class Client implements FLLScoreClient.IClient {
                 });
 
                 if (!processed) {
-                    console.log('WARNING: Line: ' + line + ' was not processed');
+                    // console.log('WARNING: Line: ' + line + ' was not processed');
                 }
             });
         });
@@ -130,7 +128,6 @@ export class Client implements FLLScoreClient.IClient {
         return new Promise<string>((resolve, reject) => {
 
             const to = setTimeout(() => {
-                console.log('timeout');
                 this.socket.removeListener('error', errorListener);
                 this.removeCallback('welcome', cb);
                 this.socket.emit('close', true);
@@ -173,7 +170,6 @@ export class Client implements FLLScoreClient.IClient {
             }
 
             const to = setTimeout(() => {
-                console.log('timeout');
                 this.socket.removeListener('error', errorListener);
                 this.removeCallback('echo', cb);
                 reject(new Error('timeout'));
@@ -208,7 +204,6 @@ export class Client implements FLLScoreClient.IClient {
             }
 
             const to = setTimeout(() => {
-                console.log('timeout');
                 this.socket.removeListener('error', errorListener);
                 this.removeCallback('lastUpdate', cb);
                 reject(new Error('timeout'));
@@ -263,8 +258,8 @@ export class Client implements FLLScoreClient.IClient {
             const scoreDoneCallback = () => {
                 const teamDiff = scheduleInfo.numberOfTeams - teamInfo.length;
                 if (teamDiff > 0) {
-                    console.log('WARNING: only received ' +
-                        teamInfo.length + '/' + scheduleInfo.numberOfTeams + ' teams!');
+                    // console.log('WARNING: only received ' +
+                    //     teamInfo.length + '/' + scheduleInfo.numberOfTeams + ' teams!');
                     const arr = this.callbackQueues.get('score');
                     if (arr !== undefined) {
                         arr.splice(0, teamDiff);
