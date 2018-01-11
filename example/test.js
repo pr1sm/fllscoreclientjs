@@ -1,5 +1,4 @@
-// var fllScoreClient = require('fllscoreclientproxy'); // Published version
-var fllScoreClient = require('../dist/fllscoreclientproxy'); // Uncomment for dev version
+var fllScoreClient = require('fllscoreclient/dist/fllscoreclientproxy');
 
 var client = fllScoreClient.createClient({host: 'localhost', port: 8100});
 
