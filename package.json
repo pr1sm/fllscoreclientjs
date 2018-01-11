@@ -65,6 +65,7 @@
     "exclude": [
       "coverage/**",
       "dist/**",
+      "doc/**",
       "example/**",
       "test/**",
       "node_modules/**",
