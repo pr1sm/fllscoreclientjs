@@ -10,6 +10,7 @@ export declare class WebProxy implements FLLScoreClient.IWebProxy {
     private opts;
     private fllclient;
     private pollTest?;
+    private createdServer;
     constructor(opts?: FLLScoreClient.IWebProxyOpts);
     startProxy(): Promise<boolean>;
     stopProxy(): Promise<string>;

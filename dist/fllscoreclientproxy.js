@@ -501,6 +501,7 @@ class WebProxy {
                 useWatchdog: true,
             },
         };
+        this.createdServer = false;
         if (opts !== undefined) {
             this.opts = WebProxy.defaults(opts, this.opts);
         }
@@ -513,6 +514,7 @@ class WebProxy {
             this.fllclient = index_1.createClient(this.socketOpts);
         }
         if (this.server === undefined) {
+            this.createdServer = true;
             this.server = io();
         }
     }
@@ -577,7 +579,10 @@ class WebProxy {
                     });
                 }, this.infoPollingRate * 1000);
                 this.setupClientListener();
-                this.server.listen(this.servePort);
+                if (this.createdServer) {
+                    console.log('Listening on port: ' + this.servePort);
+                    this.server.listen(this.servePort);
+                }
                 resolve(true);
             }).catch(() => {
                 resolve(false);

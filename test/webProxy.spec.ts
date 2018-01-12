@@ -6,6 +6,7 @@ import { expect } from "chai";
 import { WebProxy } from '../src/proxy/webProxy';
 import { FLLScoreClient } from '../src/shared/interface';
 import {MockClient} from './mock/client';
+import * as io from 'socket.io';
 
 chai.use(sinonChai);
 
@@ -44,6 +45,12 @@ describe('WebProxy', () => {
         it('should construct with servePort', () => {
             const proxy = new WebProxy({servePort: 42});
             expect(proxy.servePort).to.equal(42);
+        });
+
+        it('should construct with socketIO', () => {
+            const socketIO = io();
+            const proxy = new WebProxy({socketIO: socketIO});
+            expect(proxy.createdServer).to.be.false;
         });
 
         it('should construct with socket', () => {

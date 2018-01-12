@@ -35,12 +35,14 @@ export class WebProxy implements FLLScoreClient.IWebProxy {
             val.servePort = val.socketOpts!.port! + 1;
         }
         if (src.socketIO !== undefined) {
+            console.log('setting socketio');
             val.socketIO = src.socketIO;
         }
 
         return val;
     }
 
+    public createdServer: boolean = false;
     public readonly infoPollingRate: number;
     public readonly servePort: number;
     public readonly socketOpts: FLLScoreClient.IClientOpts;
@@ -59,7 +61,6 @@ export class WebProxy implements FLLScoreClient.IWebProxy {
     };
     private fllclient: FLLScoreClient.IClient;
     private pollTest?: NodeJS.Timer;
-    private createdServer: boolean = false;
 
     constructor(opts?: FLLScoreClient.IWebProxyOpts) {
         if (opts !== undefined) {
@@ -70,6 +71,7 @@ export class WebProxy implements FLLScoreClient.IWebProxy {
         this.fllclient = this.opts!.socket!;
         this.infoPollingRate = this.opts!.infoPollingRate!;
         this.servePort = this.opts!.servePort!;
+        this.server = this.opts!.socketIO!;
         this.socketOpts = this.opts!.socketOpts!;
 
         if (this.fllclient === undefined) {
