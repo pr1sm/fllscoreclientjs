@@ -4266,7 +4266,8 @@ class WebClient extends events_1.EventEmitter {
         this.lastUpdate = undefined;
         this.scoreInfo = undefined;
         const lastColon = this.host.lastIndexOf(':');
-        const hostPort = parseInt(this.host.substring(lastColon), 10);
+        const portTest = this.host.substring(lastColon + 1);
+        const hostPort = parseInt(portTest, 10);
         if (lastColon !== -1 && !isNaN(hostPort)) {
             this.port = hostPort;
             console.log('connecting to ' + this.host);

@@ -81,10 +81,10 @@ export class WebProxy implements FLLScoreClient.IWebProxy {
             console.log('creating server');
             this.createdServer = true;
             this.server = io({
-                transports: ['polling', 'websocket'],
+                origins: '*:*',
                 pingInterval: 10000,
                 pingTimeout: 5000,
-                origins: '*:*',
+                transports: ['polling', 'websocket'],
             });
         }
     }
