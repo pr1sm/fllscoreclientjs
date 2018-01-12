@@ -149,7 +149,7 @@ export class Client implements FLLScoreClient.IClient {
                 this.removeCallback('welcome', cb);
                 this.socket.emit('close', true);
                 reject(new Error('timeout'));
-            }, 50);
+            }, 5000);
 
             const cb = (data: string) => {
                 const raw = data.trim();
@@ -190,7 +190,7 @@ export class Client implements FLLScoreClient.IClient {
                 this.socket.removeListener('error', errorListener);
                 this.removeCallback('echo', cb);
                 reject(new Error('timeout'));
-            }, 50);
+            }, 5000);
 
             const cb = () => {
                 this.socket.removeListener('error', errorListener);
@@ -224,7 +224,7 @@ export class Client implements FLLScoreClient.IClient {
                 this.socket.removeListener('error', errorListener);
                 this.removeCallback('lastUpdate', cb);
                 reject(new Error('timeout'));
-            }, 50);
+            }, 5000);
 
             const cb = (data: string) => {
                 if (FLLScoreClientConstants.LAST_UPDATE.test(data.toString())) {

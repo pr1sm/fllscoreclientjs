@@ -225,7 +225,7 @@ class Client {
                 this.removeCallback('welcome', cb);
                 this.socket.emit('close', true);
                 reject(new Error('timeout'));
-            }, 50);
+            }, 5000);
             const cb = (data) => {
                 const raw = data.trim();
                 this.watchdogInterval = parseInt(raw.substring(raw.indexOf(':') + 1), 10);
@@ -259,7 +259,7 @@ class Client {
                 this.socket.removeListener('error', errorListener);
                 this.removeCallback('echo', cb);
                 reject(new Error('timeout'));
-            }, 50);
+            }, 5000);
             const cb = () => {
                 this.socket.removeListener('error', errorListener);
                 clearTimeout(to);
@@ -286,7 +286,7 @@ class Client {
                 this.socket.removeListener('error', errorListener);
                 this.removeCallback('lastUpdate', cb);
                 reject(new Error('timeout'));
-            }, 50);
+            }, 5000);
             const cb = (data) => {
                 if (FLLScoreClientConstants.LAST_UPDATE.test(data.toString())) {
                     const raw = data.toString().trim();
