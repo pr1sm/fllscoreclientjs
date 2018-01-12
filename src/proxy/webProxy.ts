@@ -35,7 +35,6 @@ export class WebProxy implements FLLScoreClient.IWebProxy {
             val.servePort = val.socketOpts!.port! + 1;
         }
         if (src.socketIO !== undefined) {
-            console.log('setting socketio');
             val.socketIO = src.socketIO;
         }
 
@@ -79,8 +78,14 @@ export class WebProxy implements FLLScoreClient.IWebProxy {
         }
 
         if (this.server === undefined) {
+            console.log('creating server');
             this.createdServer = true;
-            this.server = io();
+            this.server = io({
+                transports: ['polling', 'websocket'],
+                pingInterval: 10000,
+                pingTimeout: 5000,
+                origins: '*:*',
+            });
         }
     }
 
@@ -116,7 +121,8 @@ export class WebProxy implements FLLScoreClient.IWebProxy {
                     this.server.listen(this.servePort);
                 }
                 resolve(true);
-            }).catch(() => {
+            }).catch((err) => {
+                console.log(err);
                 resolve(false);
             });
         });

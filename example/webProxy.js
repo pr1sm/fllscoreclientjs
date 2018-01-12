@@ -1,4 +1,4 @@
-var fllScoreProxy = require('fllscoreclient/dist/fllscoreclientproxy');
+var fllScoreProxy = require('../dist/fllscoreclientproxy');
 
 var proxy = fllScoreProxy.createWebProxy({servePort: 8100, infoPollingRate: 3, socketOpts: {host: 'localhost', port: 8200}});
 

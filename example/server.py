@@ -101,7 +101,7 @@ class ClientHandlerThread(threading.Thread):
             self._client_socket.send('invalid command\r\n')
 
 bind_ip = '0.0.0.0'
-bind_port = 8100
+bind_port = 8200
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)

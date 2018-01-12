@@ -10,6 +10,6 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "fllscoreclient": "^0.12.0"
+    "fllscoreclient": "^0.13.0"
   }
 }

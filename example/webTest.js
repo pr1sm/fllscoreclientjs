@@ -1,7 +1,7 @@
 const fllscoreclient = window.fllscoreclient;
 
 window.onload = function() {
-    const client = fllscoreclient.createWebClient('0.0.0.0', 8100);
+    const client = fllscoreclient.createWebClient('http://localhost', 8100);
     const ticker = document.getElementById('ticker');
 
     client.on('lastUpdate', (date) => {
@@ -14,9 +14,15 @@ window.onload = function() {
 
     client.on('scoreInfo', (info) => {
         info.teamInfo.forEach((team) => {
-            const content = '' + team.number + ' | ' + team.name + ' | '
-                + team.highScore + ' | ' + team.scores[0] + ' | ' + team.scores[1]
-                + ' | ' + team.scores[2];
+            let content = `${team.number} | ${team.name}`;
+            if(team.highScore >= 0) {
+                content += ` | ${team.highScore}`;
+                team.scores.forEach((score) => {
+                    if(score >= 0) {
+                        content += ` | ${score}`;
+                    }
+                });
+            }
 
             let tickerItem = document.getElementById(team.number.toString());
             if (tickerItem === null) {

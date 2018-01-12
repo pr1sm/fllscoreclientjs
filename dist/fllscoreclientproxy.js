@@ -515,8 +515,14 @@ class WebProxy {
             this.fllclient = index_1.createClient(this.socketOpts);
         }
         if (this.server === undefined) {
+            console.log('creating server');
             this.createdServer = true;
-            this.server = io();
+            this.server = io({
+                transports: ['polling', 'websocket'],
+                pingInterval: 10000,
+                pingTimeout: 5000,
+                origins: '*:*',
+            });
         }
     }
     static defaults(src, def) {
@@ -551,7 +557,6 @@ class WebProxy {
             val.servePort = val.socketOpts.port + 1;
         }
         if (src.socketIO !== undefined) {
-            console.log('setting socketio');
             val.socketIO = src.socketIO;
         }
         return val;
@@ -586,7 +591,8 @@ class WebProxy {
                     this.server.listen(this.servePort);
                 }
                 resolve(true);
-            }).catch(() => {
+            }).catch((err) => {
+                console.log(err);
                 resolve(false);
             });
         });

@@ -17,12 +17,15 @@ export class WebClient extends EventEmitter implements FLLScoreClient.IWebClient
         this.lastUpdate = undefined;
         this.scoreInfo = undefined;
 
-        const hostPort = parseInt(this.host.substring(this.host.lastIndexOf(':')), 10);
-        if (!isNaN(hostPort)) {
+        const lastColon = this.host.lastIndexOf(':');
+        const hostPort = parseInt(this.host.substring(lastColon), 10);
+        if (lastColon !== -1 && !isNaN(hostPort)) {
             this.port = hostPort;
-            this.socket = io(this.host);
+            console.log('connecting to ' + this.host);
+            this.socket = io(this.host, {autoConnect: false});
         } else {
-            this.socket = io(this.host + ':' + this.port);
+            console.log('connecting to ' + this.host + ':' + this.port);
+            this.socket = io(this.host + ':' + this.port, {autoConnect: false});
         }
 
         this.socket.on('lastUpdate', (res: string|Error) => {
@@ -53,6 +56,8 @@ export class WebClient extends EventEmitter implements FLLScoreClient.IWebClient
         this.socket.on('disconnect', () => {
             console.info('Disconnected');
         });
+
+        this.socket.connect();
     }
 
     public getLastUpdate(): Promise<Date> {
