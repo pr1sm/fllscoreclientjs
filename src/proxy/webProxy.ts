@@ -59,6 +59,7 @@ export class WebProxy implements FLLScoreClient.IWebProxy {
     };
     private fllclient: FLLScoreClient.IClient;
     private pollTest?: NodeJS.Timer;
+    private createdServer: boolean = false;
 
     constructor(opts?: FLLScoreClient.IWebProxyOpts) {
         if (opts !== undefined) {
@@ -76,6 +77,7 @@ export class WebProxy implements FLLScoreClient.IWebProxy {
         }
 
         if (this.server === undefined) {
+            this.createdServer = true;
             this.server = io();
         }
     }
@@ -107,7 +109,10 @@ export class WebProxy implements FLLScoreClient.IWebProxy {
 
                 this.setupClientListener();
 
-                this.server.listen(this.servePort);
+                if(this.createdServer) {
+                    console.log('Listening on port: ' + this.servePort);
+                    this.server.listen(this.servePort);
+                }
                 resolve(true);
             }).catch(() => {
                 resolve(false);
