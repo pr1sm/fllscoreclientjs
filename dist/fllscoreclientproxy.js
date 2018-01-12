@@ -491,6 +491,7 @@ const io = __webpack_require__(8);
 const index_1 = __webpack_require__(0);
 class WebProxy {
     constructor(opts) {
+        this.createdServer = false;
         this.opts = {
             infoPollingRate: 30,
             servePort: 25003,
@@ -501,7 +502,6 @@ class WebProxy {
                 useWatchdog: true,
             },
         };
-        this.createdServer = false;
         if (opts !== undefined) {
             this.opts = WebProxy.defaults(opts, this.opts);
         }
@@ -509,6 +509,7 @@ class WebProxy {
         this.fllclient = this.opts.socket;
         this.infoPollingRate = this.opts.infoPollingRate;
         this.servePort = this.opts.servePort;
+        this.server = this.opts.socketIO;
         this.socketOpts = this.opts.socketOpts;
         if (this.fllclient === undefined) {
             this.fllclient = index_1.createClient(this.socketOpts);
@@ -550,6 +551,7 @@ class WebProxy {
             val.servePort = val.socketOpts.port + 1;
         }
         if (src.socketIO !== undefined) {
+            console.log('setting socketio');
             val.socketIO = src.socketIO;
         }
         return val;

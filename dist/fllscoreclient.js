@@ -4265,7 +4265,14 @@ class WebClient extends events_1.EventEmitter {
         this.port = port;
         this.lastUpdate = undefined;
         this.scoreInfo = undefined;
-        this.socket = io(this.host + ':' + this.port);
+        const hostPort = parseInt(this.host.substring(this.host.lastIndexOf(':')), 10);
+        if (!isNaN(hostPort)) {
+            this.port = hostPort;
+            this.socket = io(this.host);
+        }
+        else {
+            this.socket = io(this.host + ':' + this.port);
+        }
         this.socket.on('lastUpdate', (res) => {
             if (!isNaN(Date.parse(res))) {
                 this.lastUpdate = new Date(Date.parse(res));

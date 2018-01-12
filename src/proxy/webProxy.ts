@@ -111,7 +111,7 @@ export class WebProxy implements FLLScoreClient.IWebProxy {
 
                 this.setupClientListener();
 
-                if(this.createdServer) {
+                if (this.createdServer) {
                     console.log('Listening on port: ' + this.servePort);
                     this.server.listen(this.servePort);
                 }

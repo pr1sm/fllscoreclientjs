@@ -2,6 +2,7 @@
 import { FLLScoreClient } from '../shared/interface';
 export declare class WebProxy implements FLLScoreClient.IWebProxy {
     private static defaults(src, def);
+    createdServer: boolean;
     readonly infoPollingRate: number;
     readonly servePort: number;
     readonly socketOpts: FLLScoreClient.IClientOpts;
@@ -10,7 +11,6 @@ export declare class WebProxy implements FLLScoreClient.IWebProxy {
     private opts;
     private fllclient;
     private pollTest?;
-    private createdServer;
     constructor(opts?: FLLScoreClient.IWebProxyOpts);
     startProxy(): Promise<boolean>;
     stopProxy(): Promise<string>;
