@@ -21,39 +21,44 @@ class ClientHandlerThread(threading.Thread):
     def stopped(self):
         return self._stop_event.is_set()
 
+    def send(self, message):
+        self._client_socket.send(message.encode())
+
     def run(self):
         try:
-            raw_request = self._client_socket.recv(1024)
-            print 'Received: {}'.format(raw_request);
-            request = raw_request.strip().split(':', 2)
+            raw_bytes = self._client_socket.recv(1024)
+            raw_request = raw_bytes.decode("utf-8")
+            # print("Received: {}".format(raw_request))
+            request = raw_request.strip().split(":", 2)
             if not len(request) == 2:
-                self._client_socket.send('invalid command\r\n')
+                self.send("invalid command\r\n")
             else:
                 self.parse_command(request)
 
         except socket.timeout:
-            print '{} - {}: Timeout occurred, closing connection'.format(self._client_addr, self._client_name)
+            print("{} - {}: Timeout occurred, closing connection".format(self._client_addr, self._client_name))
             self._client_socket.close()
             return
 
         self._client_socket.settimeout(2 * WATCHDOG_INTERVAL)
         while not self._stop_event.is_set():
             try:
-                raw_request = self._client_socket.recv(1024)
-                print 'Received: {}'.format(raw_request);
+                raw_bytes = self._client_socket.recv(1024)
+                raw_request = raw_bytes.decode("utf-8")
+                # print("Received: {}".format(raw_request))
                 if not raw_request:
-                    print '{} - {}: Connection Closed'.format(self._client_addr, self._client_name)
+                    print("{} - {}: Connection Closed".format(self._client_addr, self._client_name))
                     break
 
                 request = raw_request.strip().split(':', 2)
                 if not len(request) == 2:
-                    self._client_socket.send('invalid command\r\n')
+                    self.send("invalid command\r\n")
                     continue
                 
                 self.parse_command(request)
 
             except socket.timeout:
-                print '{} - {}: Timeout occurred, closing connection'.format(self._client_addr, self._client_name)
+                print("{} - {}: Timeout occurred, closing connection".format(self._client_addr, self._client_name))
                 self._client_socket.close()
                 return
             except socket.error:
@@ -63,44 +68,44 @@ class ClientHandlerThread(threading.Thread):
 
     def parse_command(self, request):
         command = request[0]
-        args = request[1].split('|')
-        print '{} - {}: Received {}:{}'.format(self._client_addr, self._client_name, command, args)
+        args = request[1].split("|")
+        # print("{} - {}: Received {}:{}".format(self._client_addr, self._client_name, command, args))
 
-        if command == 'FLLScore':
+        if command == "FLLScore":
             if len(args[0]) > 0:
                 self._client_name = args[0].strip()
 
-            self._client_socket.send('Welcome:{}\r\n'.format(WATCHDOG_INTERVAL))
+            self.send("Welcome:{}\r\n".format(WATCHDOG_INTERVAL))
 
-        elif command == 'Ping':
-            self._client_socket.send('Echo:\r\n')
+        elif command == "Ping":
+            self.send("Echo:\r\n")
 
-        elif command == 'Send Score':
-            self._client_socket.send('Score Header:11/10/2017 7:52:40 AM|12|36|6\r\n')
-            self._client_socket.send('Score:16449|Dolphin Spiders|310|310|-1|-1\r\n')
-            self._client_socket.send('Score:17557|Crimson Flying|145|145|-1|-1\r\n')
-            self._client_socket.send('Score:23402|Striking Heroes|270|270|-1|-1\r\n')
-            self._client_socket.send('Score:30150|Lightning Spanners|275|275|-1|245\r\n')
-            self._client_socket.send('Score:33256|Alpha Secret Agents|-1|-1|-1|-1\r\n')
-            self._client_socket.send('Score:36131|Ice Mutants|205|205|-1|-1\r\n')
-            self._client_socket.send('Score:41714|Muffin Bandits|-1|-1|-1|-1\r\n')
-            self._client_socket.send('Score:45406|Venomous Slammers|-1|-1|-1|-1\r\n')
-            self._client_socket.send('Score:48551|Sneaky Falcons|-1|-1|-1|-1\r\n')
-            self._client_socket.send('Score:61655|Extreme Dragons|-1|-1|-1|-1\r\n')
-            self._client_socket.send('Score:74638|Butterfly Racoons|-1|-1|-1|-1\r\n')
-            self._client_socket.send('Score:90436|Fire Bandits|-1|-1|-1|-1\r\n')
-            self._client_socket.send('Score Done:\r\n')
+        elif command == "Send Score":
+            self.send("Score Header:11/10/2017 7:52:40 AM|12|36|6\r\n")
+            self.send("Score:16449|Dolphin Spiders|310|310|-1|-1\r\n")
+            self.send("Score:17557|Crimson Flying|145|145|-1|-1\r\n")
+            self.send("Score:23402|Striking Heroes|270|270|-1|-1\r\n")
+            self.send("Score:30150|Lightning Spanners|275|275|-1|245\r\n")
+            self.send("Score:33256|Alpha Secret Agents|-1|-1|-1|-1\r\n")
+            self.send("Score:36131|Ice Mutants|205|205|-1|-1\r\n")
+            self.send("Score:41714|Muffin Bandits|-1|-1|-1|-1\r\n")
+            self.send("Score:45406|Venomous Slammers|-1|-1|-1|-1\r\n")
+            self.send("Score:48551|Sneaky Falcons|-1|-1|-1|-1\r\n")
+            self.send("Score:61655|Extreme Dragons|-1|-1|-1|-1\r\n")
+            self.send("Score:74638|Butterfly Racoons|-1|-1|-1|-1\r\n")
+            self.send("Score:90436|Fire Bandits|-1|-1|-1|-1\r\n")
+            self.send("Score Done:\r\n")
 
-        elif command == 'Send Last Update':
+        elif command == "Send Last Update":
             _now = datetime.datetime.now()
             if _now.second != self._client_time.second :
                 self._client_time = _now
 
-            self._client_socket.send('Last Update:{}\r\n'.format(self._client_time.strftime('%m/%d/%Y %I:%M:%S %p')))
+            self.send("Last Update:{}\r\n".format(self._client_time.strftime("%m/%d/%Y %I:%M:%S %p")))
         else:
-            self._client_socket.send('invalid command\r\n')
+            self.send("invalid command\r\n")
 
-bind_ip = '0.0.0.0'
+bind_ip = "0.0.0.0"
 bind_port = 8200
 
 server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -109,13 +114,13 @@ server.bind((bind_ip, bind_port))
 server.listen(5)
 tpool = []
 
-print 'Listening on {}:{}'.format(bind_ip, bind_port)
+print("Listening on {}:{}".format(bind_ip, bind_port))
 
 try:
     while True:
         client_sock, address = server.accept()
-        client_addr = '{}:{}'.format(address[0], address[1])
-        print 'Accepted connection from {}'.format(client_addr)
+        client_addr = "{}:{}".format(address[0], address[1])
+        print("Accepted connection from {}".format(client_addr))
         client_handler = ClientHandlerThread(client_sock, client_addr)
         tpool.append(client_handler)
         client_handler.start()
@@ -123,7 +128,7 @@ try:
                  if not thread.stopped()
                  ]
 except KeyboardInterrupt:
-    print '\nClosing...'
+    print("\nClosing...")
 finally:
     for thread in tpool:
         thread.stop()
