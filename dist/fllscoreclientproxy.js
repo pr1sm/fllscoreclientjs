@@ -581,7 +581,6 @@ class WebProxy {
     }
     stopProxy() {
         if (this.pollTest !== undefined) {
-            console.log('stopping interval');
             clearInterval(this.pollTest);
         }
         this.closeConnections();

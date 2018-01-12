@@ -112,7 +112,6 @@ export class WebProxy implements FLLScoreClient.IWebProxy {
 
     public stopProxy(): Promise<string> {
         if (this.pollTest !== undefined) {
-            console.log('stopping interval');
             clearInterval(this.pollTest);
         }
         this.closeConnections();

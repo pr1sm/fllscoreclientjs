@@ -3,9 +3,9 @@
 import { EventEmitter } from 'events';
 import { FLLScoreClient } from '../shared/interface';
 export declare class WebClient extends EventEmitter implements FLLScoreClient.IWebClient {
-    host: string;
-    port: number;
-    socket: SocketIOClient.Socket;
+    readonly host: string;
+    readonly port: number;
+    readonly socket: SocketIOClient.Socket;
     private lastUpdate?;
     private scoreInfo?;
     constructor(host?: string, port?: number);
