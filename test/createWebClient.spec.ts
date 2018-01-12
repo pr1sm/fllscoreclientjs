@@ -2,7 +2,7 @@ import { expect } from "chai";
 import { createWebClient } from '../src/client';
 import { WebClient } from '../src/client/webClient';
 
-describe('createWebClient', () => {
+describe.skip('createWebClient', () => {
     it('should construct a valid WebClient', () => {
         const webClient = createWebClient();
 

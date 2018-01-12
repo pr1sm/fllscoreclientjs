@@ -1,5 +1,6 @@
 /// <reference types="node" />
 /// <reference types="socket.io-client" />
+/// <reference types="socket.io" />
 import { Socket } from 'net';
 import EventEmitter = NodeJS.EventEmitter;
 export declare namespace FLLScoreClient {
@@ -180,6 +181,10 @@ export declare namespace FLLScoreClient {
          * The underlying client connection.
          */
         socket?: IClient;
+        /**
+         *  An already created instants of a socket.io server
+         */
+        socketIO?: SocketIO.Server;
     }
     /**
      * The Web Proxy to provide browsers with scoring info through web sockets.

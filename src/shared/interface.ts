@@ -210,6 +210,11 @@ export declare namespace FLLScoreClient {
          * The underlying client connection.
          */
         socket?: IClient;
+
+        /**
+         *  An already created instants of a socket.io server
+         */
+        socketIO?: SocketIO.Server;
     }
 
     /**

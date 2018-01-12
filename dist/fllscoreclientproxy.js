@@ -505,14 +505,16 @@ class WebProxy {
             this.opts = WebProxy.defaults(opts, this.opts);
         }
         this.clients = [];
+        this.fllclient = this.opts.socket;
         this.infoPollingRate = this.opts.infoPollingRate;
         this.servePort = this.opts.servePort;
         this.socketOpts = this.opts.socketOpts;
-        this.fllclient = this.opts.socket;
         if (this.fllclient === undefined) {
             this.fllclient = index_1.createClient(this.socketOpts);
         }
-        this.server = io();
+        if (this.server === undefined) {
+            this.server = io();
+        }
     }
     static defaults(src, def) {
         const val = def;
@@ -544,6 +546,9 @@ class WebProxy {
         }
         if (val.servePort === val.socketOpts.port) {
             val.servePort = val.socketOpts.port + 1;
+        }
+        if (src.socketIO !== undefined) {
+            val.socketIO = src.socketIO;
         }
         return val;
     }
