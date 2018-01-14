@@ -72,7 +72,7 @@ export class Client implements FLLScoreClient.IClient {
 
         this. messageBuffer = '';
         this.socket.on('data', (data) => {
-            let message = data.toString();
+            let message = data.toString()
 
             // Check for incomplete message, push that onto the buffer and process the rest (if there are any)
             if (!message.endsWith('\r\n')) {
@@ -227,22 +227,16 @@ export class Client implements FLLScoreClient.IClient {
             }, 5000);
 
             const cb = (data: string) => {
-                if (FLLScoreClientConstants.LAST_UPDATE.test(data.toString())) {
-                    const raw = data.toString().trim();
-                    const response = raw.substring(raw.indexOf(':') + 1);
-                    const newDate = new Date(response);
-                    this.socket.removeListener('error', errorListener);
-                    clearTimeout(to);
-                    if (this.lastUpdate === undefined || newDate.getTime() > this.lastUpdate.getTime()) {
-                        this.lastUpdate = newDate;
-                        resolve(true);
-                    } else {
-                        resolve(false);
-                    }
+                const raw = data.toString().trim();
+                const response = raw.substring(raw.indexOf(':') + 1);
+                const newDate = new Date(response);
+                this.socket.removeListener('error', errorListener);
+                clearTimeout(to);
+                if (this.lastUpdate === undefined || newDate.getTime() > this.lastUpdate.getTime()) {
+                    this.lastUpdate = newDate;
+                    resolve(true);
                 } else {
-                    this.socket.removeListener('error', errorListener);
-                    clearTimeout(to);
-                    reject(new Error('Unexpected Message returned: ' + data));
+                    resolve(false);
                 }
             };
 

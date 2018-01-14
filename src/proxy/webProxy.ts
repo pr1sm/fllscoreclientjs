@@ -78,7 +78,6 @@ export class WebProxy implements FLLScoreClient.IWebProxy {
         }
 
         if (this.server === undefined) {
-            console.log('creating server');
             this.createdServer = true;
             this.server = io({
                 origins: '*:*',

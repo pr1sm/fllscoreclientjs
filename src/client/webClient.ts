@@ -95,4 +95,8 @@ export class WebClient extends EventEmitter implements FLLScoreClient.IWebClient
             }
         });
     }
+
+    public close(): void {
+        this.socket.close();
+    }
 }
