@@ -85,6 +85,7 @@ export class WebClient extends EventEmitter implements FLLScoreClient.IWebClient
                 this.socket.emit('sendScoreInfo', 'please', (res: FLLScoreClient.IScoreInfo|Error) => {
                     if ((res as FLLScoreClient.IScoreInfo).scheduleInfo !== undefined &&
                         (res as FLLScoreClient.IScoreInfo).teamInfo !== undefined) {
+                        this.scoreInfo = (res as FLLScoreClient.IScoreInfo);
                         resolve(res as FLLScoreClient.IScoreInfo);
                     } else {
                         reject(res as Error);
