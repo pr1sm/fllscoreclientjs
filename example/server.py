@@ -14,6 +14,7 @@ class ClientHandlerThread(threading.Thread):
         self._client_addr = client_addr
         self._client_name = '---'
         self._client_time = datetime.datetime.now()
+        self._toggle = False
 
     def stop(self):
         self._stop_event.set()
@@ -83,7 +84,14 @@ class ClientHandlerThread(threading.Thread):
         elif command == "Send Score":
             self.send("Score Header:11/10/2017 7:52:40 AM|48|60|10\r\n")
             self.send("Score:16449|Dolphin Spiders|310|310|-1|-1\r\n")
-            self.send("Score:17557|Crimson Flying|145|145|-1|-1\r\n")
+
+            if self._toggle:
+                self.send("Score:17557|Crimson Flying|145|145|145|145\r\n")
+            else:
+                self.send("Score:17557|Crimson Flying|145|145|-1|-1\r\n")
+
+            self._toggle^=True
+
             self.send("Score:23402|Striking Heroes|270|270|-1|-1\r\n")
             self.send("Score:30150|Lightning Spanners|275|275|-1|245\r\n")
             self.send("Score:33256|Alpha Secret Agents|-1|-1|-1|-1\r\n")

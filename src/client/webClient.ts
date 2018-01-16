@@ -69,8 +69,7 @@ export class WebClient extends EventEmitter implements FLLScoreClient.IWebClient
                         this.lastUpdate = new Date(res as string);
                         resolve(this.lastUpdate);
                     } else {
-                        console.error('Rejecting...' + res);
-                        reject(res);
+                        reject(res as Error);
                     }
                 });
             } else {
