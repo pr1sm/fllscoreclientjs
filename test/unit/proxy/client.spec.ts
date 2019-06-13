@@ -1,7 +1,7 @@
 import * as chai from 'chai';
-import * as chaiDatetime from 'chai-datetime';
+import chaiDatetime from 'chai-datetime';
 import * as sinon from 'sinon';
-import * as sinonChai from 'sinon-chai';
+import sinonChai from 'sinon-chai';
 
 import { assert, expect } from 'chai';
 import { Socket } from 'net';
@@ -12,7 +12,7 @@ import * as FLLScoreClient from '../../../src/shared/interface';
 chai.use(chaiDatetime);
 chai.use(sinonChai);
 
-let clock = this.clock;
+let clock = (this as any).clock;
 
 export class ClientSpec {
     public static run() {
@@ -69,8 +69,8 @@ export class ClientSpec {
 
             describe('connect', () => {
                 let client: Client;
-                let connectStub;
-                let writeStub;
+                let connectStub: sinon.SinonStub;
+                let writeStub: sinon.SinonStub;
 
                 beforeEach(() => {
                     client = new Client({host: 'localhost', port: 25002, name: 'UnitTest', useWatchdog: false});
@@ -170,8 +170,8 @@ export class ClientSpec {
 
             describe('sendPing', () => {
                 let client: Client;
-                let connectStub;
-                let writeStub;
+                let connectStub: sinon.SinonStub;
+                let writeStub: sinon.SinonStub;
 
                 beforeEach(() => {
                     client = new Client({host: 'localhost', port: 25002, name: 'UnitTest', useWatchdog: false});
@@ -289,8 +289,8 @@ export class ClientSpec {
 
             describe('sendLastUpdate', () => {
                 let client: Client;
-                let connectStub;
-                let writeStub;
+                let connectStub: sinon.SinonStub;
+                let writeStub: sinon.SinonStub;
 
                 beforeEach(() => {
                     clock = sinon.useFakeTimers();
@@ -394,8 +394,8 @@ export class ClientSpec {
 
             describe('sendScore', () => {
                 let client: Client;
-                let connectStub;
-                let writeStub;
+                let connectStub: sinon.SinonStub;
+                let writeStub: sinon.SinonStub;
 
                 beforeEach(() => {
                     client = new Client({host: 'localhost', port: 25002, name: 'UnitTest', useWatchdog: false});
@@ -531,9 +531,9 @@ export class ClientSpec {
 
             describe('close', () => {
                 let client: Client;
-                let connectStub;
-                let endStub;
-                let writeStub;
+                let connectStub: sinon.SinonStub;
+                let endStub: sinon.SinonStub;
+                let writeStub: sinon.SinonStub;
 
                 beforeEach(() => {
                     client = new Client({host: 'localhost', port: 25002, name: 'UnitTest', useWatchdog: false});
@@ -628,11 +628,11 @@ export class ClientSpec {
 
             describe('watchdog timer', () => {
                 let client: Client;
-                let connectStub;
-                let endStub;
-                let writeStub;
-                let setIntervalSpy;
-                let clearIntervalSpy;
+                let connectStub: sinon.SinonStub;
+                let endStub: sinon.SinonStub;
+                let writeStub: sinon.SinonStub;
+                let setIntervalSpy: sinon.SinonSpy;
+                let clearIntervalSpy: sinon.SinonSpy;
 
                 beforeEach(() => {
                     clock = sinon.useFakeTimers();

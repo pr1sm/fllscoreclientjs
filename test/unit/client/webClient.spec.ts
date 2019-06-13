@@ -1,7 +1,7 @@
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import * as sinonChai from 'sinon-chai';
-import * as socketIO from 'socket.io';
+import sinonChai from 'sinon-chai';
+import socketIO from 'socket.io';
 
 import {assert, expect} from 'chai';
 
@@ -104,7 +104,7 @@ export class WebClientSpec {
                     webClient = new WebClient();
                     // const emitSpy = sinon.spy(webClient, 'emit');
 
-                    webClient.socket.on('lastUpdate', (data) => {
+                    webClient.socket.on('lastUpdate', (data: any) => {
                         console.log(`TEST: ${data}`);
                     });
 
@@ -193,7 +193,7 @@ export class WebClientSpec {
             });
 
             describe('getLastUpdate', () => {
-                let emitStub;
+                let emitStub: sinon.SinonStub;
 
                 const dateCmp = new Date('11/10/2017 7:52:40 AM');
 
@@ -232,7 +232,7 @@ export class WebClientSpec {
 
                 it('should reject when an error is sent', () => {
                     emitStub.resetBehavior();
-                    emitStub.callsFake((ev, m, cb) => {
+                    emitStub.callsFake((ev: string, m: string, cb: (error?: Error, payload?: any) => void) => {
                         if (ev === 'sendLastUpdate') {
                             expect(m.toString()).to.equal('please');
                             cb(new Error('lastUpdateError'));
@@ -246,7 +246,7 @@ export class WebClientSpec {
             });
 
             describe('getScoreInfo', () => {
-                let emitStub;
+                let emitStub: sinon.SinonStub;
 
                 beforeEach(() => {
                     webClient = new WebClient();
@@ -315,7 +315,7 @@ export class WebClientSpec {
 
                 it('should reject when an error is sent', () => {
                     emitStub.resetBehavior();
-                    emitStub.callsFake((ev, m, cb) => {
+                    emitStub.callsFake((ev: string, m: string, cb: (error?: Error, payload?: any) => void) => {
                         if (ev === 'sendScoreInfo') {
                             expect(m.toString()).to.equal('please');
                             cb(new Error('scoreInfoError'));

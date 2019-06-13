@@ -1,4 +1,4 @@
-import * as io from 'socket.io';
+import io from 'socket.io';
 import * as FLLScoreClient from '../shared/interface';
 import {createClient} from './index';
 

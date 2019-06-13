@@ -1,9 +1,9 @@
 import * as chai from 'chai';
 import * as sinon from 'sinon';
-import * as sinonChai from 'sinon-chai';
+import sinonChai from 'sinon-chai';
 
 import { assert, expect } from 'chai';
-import * as io from 'socket.io';
+import io from 'socket.io';
 import { WebProxy } from '../../../src/proxy/webProxy';
 import {MockClient} from '../mock/client';
 
@@ -82,7 +82,7 @@ export class WebProxySpec {
             });
 
             describe('startProxy', () => {
-                let webProxy;
+                let webProxy: WebProxy;
                 const stubServer = () => {
                     sinon.stub(webProxy.server, 'listen');
                     sinon.stub(webProxy.server, 'emit');
@@ -111,7 +111,7 @@ export class WebProxySpec {
             });
 
             describe('stopProxy', () => {
-                let webProxy;
+                let webProxy: WebProxy;
                 const stubServer = () => {
                     sinon.stub(webProxy.server, 'listen');
                     sinon.stub(webProxy.server, 'emit');

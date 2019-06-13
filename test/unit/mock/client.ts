@@ -12,7 +12,7 @@ export class MockClient implements FLLScoreClient.IClient {
         return mock;
     }
 
-    public readonly lastUpdate: Date;
+    public readonly lastUpdate?: Date;
     public readonly opts: FLLScoreClient.IClientOpts = {
         host: 'localhost',
         name: 'FLLScoreClient',
@@ -43,7 +43,7 @@ export class MockClient implements FLLScoreClient.IClient {
     private rejectSendScore: boolean = false;
     private rejectClose: boolean = false;
 
-    constructor(mockOpts) {
+    constructor(mockOpts: any) {
         this.rejectConnect = mockOpts.rejectConnect || this.rejectConnect;
         this.rejectPing = mockOpts.rejectPing || this.rejectPing;
         this.rejectLastUpdate = mockOpts.rejectLastUpdate || this.rejectLastUpdate;
