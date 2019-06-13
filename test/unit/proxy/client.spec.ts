@@ -3,9 +3,9 @@ import * as sinon from "sinon";
 import * as sinonChai from "sinon-chai";
 
 import { expect } from "chai";
-import { Client } from "../../src/proxy/client";
-import { FLLScoreClient } from "../../src/shared/interface";
-import * as FLLScoreClientConstants from '../../src/constants/index';
+import { Client } from "../../../src/proxy/client";
+import { FLLScoreClient } from "../../../src/shared/interface";
+import * as FLLScoreClientConstants from '../../../src/constants/index';
 import { Socket } from "net";
 
 chai.use(sinonChai);

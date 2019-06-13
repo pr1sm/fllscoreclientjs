@@ -3,8 +3,8 @@ import * as sinon from "sinon";
 import * as sinonChai from "sinon-chai";
 
 import { expect } from "chai";
-import { WebProxy } from '../../src/proxy/webProxy';
-import { FLLScoreClient } from '../../src/shared/interface';
+import { WebProxy } from '../../../src/proxy/webProxy';
+import { FLLScoreClient } from '../../../src/shared/interface';
 import {MockClient} from '../mock/client';
 import * as io from 'socket.io';
 

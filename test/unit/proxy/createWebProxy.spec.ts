@@ -1,7 +1,7 @@
 import {expect} from "chai";
-import {createWebProxy, FLLScoreClient} from '../../src/proxy';
+import {createWebProxy, FLLScoreClient} from '../../../src/proxy/index';
 import {MockClient} from '../mock/client';
-import {WebProxy} from '../../src/proxy/webProxy';
+import {WebProxy} from '../../../src/proxy/webProxy';
 
 export class CreateWebProxySpec {
     public static run() {

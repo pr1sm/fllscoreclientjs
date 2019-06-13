@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import * as FLLScoreClientConstants from "../../src/constants/index";
+import * as FLLScoreClientConstants from "../../../src/constants/index";
 
 export class ConstantsSpec {
     public static run() {

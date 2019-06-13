@@ -1,10 +1,10 @@
-import {CreateWebClientSpec} from './client/createWebClient.spec';
-import {ConstantsSpec} from './constants/constants.spec';
-import {ClientSpec} from './proxy/client.spec';
-import {CreateClientSpec} from './proxy/createClient.spec';
-import {CreateWebProxySpec} from './proxy/createWebProxy.spec';
-import {WebProxySpec} from './proxy/webProxy.spec';
-import {WebClientSpec} from './client/webClient.spec';
+import {CreateWebClientSpec} from './unit/client/createWebClient.spec';
+import {ConstantsSpec} from './unit/constants/constants.spec';
+import {ClientSpec} from './unit/proxy/client.spec';
+import {CreateClientSpec} from './unit/proxy/createClient.spec';
+import {CreateWebProxySpec} from './unit/proxy/createWebProxy.spec';
+import {WebProxySpec} from './unit/proxy/webProxy.spec';
+import {WebClientSpec} from './unit/client/webClient.spec';
 
 // Client Test Suite
 CreateWebClientSpec.run();

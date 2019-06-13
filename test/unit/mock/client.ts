@@ -1,4 +1,4 @@
-import {FLLScoreClient} from '../../src/shared/interface';
+import {FLLScoreClient} from '../../../src/shared/interface';
 import {Socket} from "net";
 import * as sinon from "sinon";
 

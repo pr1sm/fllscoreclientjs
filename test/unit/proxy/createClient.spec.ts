@@ -1,7 +1,7 @@
 import { expect } from "chai";
-import { createClient, FLLScoreClient } from "../../src/proxy";
-import { Client } from "../../src/proxy/client";
-import * as FLLScoreClientConstants from '../../src/constants';
+import { createClient, FLLScoreClient } from "../../../src/proxy/index";
+import { Client } from "../../../src/proxy/client";
+import * as FLLScoreClientConstants from '../../../src/constants/index';
 import { Socket } from "net";
 
 export class CreateClientSpec {

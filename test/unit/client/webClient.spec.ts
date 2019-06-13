@@ -2,22 +2,30 @@ import * as chai from "chai";
 import * as sinon from "sinon";
 import * as sinonChai from "sinon-chai";
 
-import {WebClient} from '../../src/client/webClient';
+import {WebClient} from '../../../src/client/webClient';
 import {expect} from "chai";
-import {FLLScoreClient} from '../../src/shared/interface';
-import {emitKeypressEvents} from 'readline';
+import {FLLScoreClient} from '../../../src/shared/interface';
+import * as socketIO from 'socket.io';
 
 chai.use(sinonChai);
 
 export class WebClientSpec {
     public static run() {
         describe('WebClient', () => {
+            let server:SocketIO.Server;
             let webClient:WebClient;
 
-            afterEach(() => {
+            beforeEach(() => {
+                server = socketIO();
+                server.listen(25003);
+            });
+
+            afterEach((done) => {
                 if (webClient !== undefined) {
                     webClient.close();
                 }
+
+                server.close(done);
             });
 
             describe('constructor', () => {
@@ -90,25 +98,33 @@ export class WebClientSpec {
                 });
 
                 it('should notify consumers of new lastUpdate data', () => {
-                    webClient = new WebClient();
-
                     const dateCmp = new Date('11/10/2017 7:52:40 AM');
-                    const emitSpy = sinon.spy(webClient, 'emit');
 
-                    webClient.socket.emit('lastUpdate', dateCmp);
+                    webClient = new WebClient();
+                    // const emitSpy = sinon.spy(webClient, 'emit');
 
-                    expect(emitSpy.calledOnce);
-                    expect(emitSpy.calledWith('lastUpdate', dateCmp));
+                    webClient.socket.on('lastUpdate', (data) => {
+                        console.log(`TEST: ${data}`);
+                    });
 
-                    emitSpy.restore();
+                    webClient.on('lastUpdate', (data) => {
+                        console.log(`TEST: ${data}`);
+                    });
+
+                    webClient.socket.emit('lastUpdate', dateCmp.toISOString());
+
+                    // expect(emitSpy.calledOnce);
+                    // expect(emitSpy.calledWith('lastUpdate', dateCmp.toISOString()));
+                    //
+                    // emitSpy.restore();
                 });
 
                 it('should notify consumers of error with lastUpdate data', () => {
-                    webClient = new WebClient();
-
                     const errorCmp = new Error('lastUpdateError');
-                    const emitSpy = sinon.spy(webClient, 'emit');
                     const consoleSpy = sinon.spy(console, 'error');
+
+                    webClient = new WebClient();
+                    const emitSpy = sinon.spy(webClient, 'emit');
 
                     webClient.socket.emit('lastUpdate', errorCmp);
 

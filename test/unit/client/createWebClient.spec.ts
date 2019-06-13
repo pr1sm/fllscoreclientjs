@@ -1,7 +1,7 @@
 import { expect } from "chai";
-import { createWebClient } from '../../src/client';
-import { WebClient } from '../../src/client/webClient';
-import {FLLScoreClient} from '../../src/shared/interface';
+import { createWebClient } from '../../../src/client/index';
+import { WebClient } from '../../../src/client/webClient';
+import {FLLScoreClient} from '../../../src/shared/interface';
 
 export class CreateWebClientSpec {
     public static run() {
