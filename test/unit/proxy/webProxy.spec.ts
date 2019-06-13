@@ -1,12 +1,11 @@
-import * as chai from "chai";
-import * as sinon from "sinon";
-import * as sinonChai from "sinon-chai";
+import * as chai from 'chai';
+import * as sinon from 'sinon';
+import * as sinonChai from 'sinon-chai';
 
-import { expect } from "chai";
-import { WebProxy } from '../../../src/proxy/webProxy';
-import { FLLScoreClient } from '../../../src/shared/interface';
-import {MockClient} from '../mock/client';
+import { assert, expect } from 'chai';
 import * as io from 'socket.io';
+import { WebProxy } from '../../../src/proxy/webProxy';
+import {MockClient} from '../mock/client';
 
 chai.use(sinonChai);
 
@@ -30,7 +29,7 @@ export class WebProxySpec {
                             host: 'new-host',
                             name: 'new-name',
                             port: 42,
-                            useWatchdog: false
+                            useWatchdog: false,
                         },
                     });
                     expect(proxy.socketOpts.host).to.equal('new-host');
@@ -51,8 +50,8 @@ export class WebProxySpec {
 
                 it('should construct with socketIO', () => {
                     const socketIO = io();
-                    const proxy = new WebProxy({socketIO: socketIO});
-                    expect(proxy.createdServer).to.be.false;
+                    const proxy = new WebProxy({socketIO});
+                    assert.isFalse(proxy.createdServer);
                 });
 
                 it('should construct with socket', () => {
@@ -63,7 +62,7 @@ export class WebProxySpec {
                             host: 'new-host',
                             name: 'new-name',
                             port: 42,
-                            useWatchdog: false
+                            useWatchdog: false,
                         },
                     });
                     expect(proxy.socketOpts.host).to.equal('localhost');
@@ -95,7 +94,7 @@ export class WebProxySpec {
                     webProxy = new WebProxy({socket: mockClient});
                     stubServer();
                     return webProxy.startProxy().then((res) => {
-                        expect(res).to.be.true;
+                        assert.isTrue(res);
                         return webProxy.stopProxy();
                     });
                 });
@@ -105,9 +104,9 @@ export class WebProxySpec {
                     webProxy = new WebProxy({socket: mockClient});
                     stubServer();
                     return webProxy.startProxy().then((res) => {
-                        expect(res).to.be.false;
+                        assert.isFalse(res);
                         return webProxy.stopProxy();
-                    })
+                    });
                 });
             });
 
@@ -124,7 +123,7 @@ export class WebProxySpec {
                     webProxy = new WebProxy({socket: mockClient});
                     stubServer();
                     return webProxy.startProxy().then((res) => {
-                        expect(res).to.be.true;
+                        assert.isTrue(res);
                         return webProxy.stopProxy();
                     });
                 });

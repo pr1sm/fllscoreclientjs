@@ -1,4 +1,4 @@
-import {FLLScoreClient} from '../shared/interface';
+import * as FLLScoreClient from '../shared/interface';
 import {WebClient} from './webClient';
 
 function createWebClient(host?: string, port?: number): FLLScoreClient.IWebClient {

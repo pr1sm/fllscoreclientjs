@@ -1,6 +1,6 @@
 import {EventEmitter} from 'events';
 import * as io from 'socket.io-client';
-import {FLLScoreClient} from '../shared/interface';
+import * as FLLScoreClient from '../shared/interface';
 
 export class WebClient extends EventEmitter implements FLLScoreClient.IWebClient {
     public readonly host: string = 'localhost';

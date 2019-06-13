@@ -1,5 +1,5 @@
 import * as io from 'socket.io';
-import {FLLScoreClient} from '../shared/interface';
+import * as FLLScoreClient from '../shared/interface';
 import {createClient} from './index';
 
 export class WebProxy implements FLLScoreClient.IWebProxy {
@@ -116,8 +116,8 @@ export class WebProxy implements FLLScoreClient.IWebProxy {
                 this.setupClientListener();
 
                 if (this.createdServer) {
-                    console.log('Listening on port: ' + this.servePort);
                     this.server.listen(this.servePort);
+                    console.log('Listening on port: ' + this.servePort);
                 }
                 resolve(true);
             }).catch((err) => {

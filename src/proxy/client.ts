@@ -1,6 +1,6 @@
 import {Socket} from 'net';
 import * as FLLScoreClientConstants from '../constants';
-import {FLLScoreClient} from '../shared/interface';
+import * as FLLScoreClient from '../shared/interface';
 import Timer = NodeJS.Timer;
 
 type DataCallback = (str: string) => void;
@@ -72,7 +72,7 @@ export class Client implements FLLScoreClient.IClient {
 
         this. messageBuffer = '';
         this.socket.on('data', (data) => {
-            let message = data.toString()
+            let message = data.toString();
 
             // Check for incomplete message, push that onto the buffer and process the rest (if there are any)
             if (!message.endsWith('\r\n')) {

@@ -1,15 +1,16 @@
-import * as chai from "chai";
-import * as sinon from "sinon";
-import * as sinonChai from "sinon-chai";
+import * as chai from 'chai';
+import * as chaiDatetime from 'chai-datetime';
+import * as sinon from 'sinon';
+import * as sinonChai from 'sinon-chai';
 
-import { expect } from "chai";
-import { Client } from "../../../src/proxy/client";
-import { FLLScoreClient } from "../../../src/shared/interface";
+import { assert, expect } from 'chai';
+import { Socket } from 'net';
 import * as FLLScoreClientConstants from '../../../src/constants/index';
-import { Socket } from "net";
+import { Client } from '../../../src/proxy/client';
+import * as FLLScoreClient from '../../../src/shared/interface';
 
+chai.use(chaiDatetime);
 chai.use(sinonChai);
-chai.use(require("chai-datetime"));
 
 let clock = this.clock;
 
@@ -18,56 +19,56 @@ export class ClientSpec {
         describe('Client', () => {
             describe('constructor', () => {
                 it('should construct with no parameters', () => {
-                    let client = new Client();
+                    const client = new Client();
 
                     expect(client.opts.host).to.equal('localhost');
                     expect(client.opts.port).to.equal(25002);
                     expect(client.opts.name).to.equal('FLLScoreClient');
                     expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
-                    expect(client.lastUpdate).to.be.undefined;
-                    expect(client.scoreInfo).to.be.undefined;
-                    expect(client.socket instanceof Socket).to.be.true;
+                    assert.isUndefined(client.lastUpdate);
+                    assert.isUndefined(client.scoreInfo);
+                    assert.isTrue(client.socket instanceof Socket);
                 });
 
                 it('should construct with host', () => {
-                    let client = new Client({host: 'new-host'});
+                    const client = new Client({host: 'new-host'});
 
                     expect(client.opts.host).to.equal('new-host');
                     expect(client.opts.port).to.equal(25002);
                     expect(client.opts.name).to.equal('FLLScoreClient');
                     expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
-                    expect(client.lastUpdate).to.be.undefined;
-                    expect(client.scoreInfo).to.be.undefined;
-                    expect(client.socket instanceof Socket).to.be.true;
+                    assert.isUndefined(client.lastUpdate);
+                    assert.isUndefined(client.scoreInfo);
+                    assert.isTrue(client.socket instanceof Socket);
                 });
 
                 it('should construct with host and port', () => {
-                    let client = new Client({host: 'new-host', port: 8080});
+                    const client = new Client({host: 'new-host', port: 8080});
 
                     expect(client.opts.host).to.equal('new-host');
                     expect(client.opts.port).to.equal(8080);
                     expect(client.opts.name).to.equal('FLLScoreClient');
                     expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
-                    expect(client.lastUpdate).to.be.undefined;
-                    expect(client.scoreInfo).to.be.undefined;
-                    expect(client.socket instanceof Socket).to.be.true;
+                    assert.isUndefined(client.lastUpdate);
+                    assert.isUndefined(client.scoreInfo);
+                    assert.isTrue(client.socket instanceof Socket);
                 });
 
                 it('should construct with host, port and name', () => {
-                    let client = new Client({host: 'new-host', port: 8080, name: 'new-name'});
+                    const client = new Client({host: 'new-host', port: 8080, name: 'new-name'});
 
                     expect(client.opts.host).to.equal('new-host');
                     expect(client.opts.port).to.equal(8080);
                     expect(client.opts.name).to.equal('new-name');
                     expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
-                    expect(client.lastUpdate).to.be.undefined;
-                    expect(client.scoreInfo).to.be.undefined;
-                    expect(client.socket instanceof Socket).to.be.true;
+                    assert.isUndefined(client.lastUpdate);
+                    assert.isUndefined(client.scoreInfo);
+                    assert.isTrue(client.socket instanceof Socket);
                 });
             });
 
             describe('connect', () => {
-                let client:Client;
+                let client: Client;
                 let connectStub;
                 let writeStub;
 
@@ -92,11 +93,11 @@ export class ClientSpec {
                     });
 
                     expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
-                    let promise = client.connect().then((res) => {
+                    const promise = client.connect().then((res) => {
                         expect(res).to.equal('Connected');
                         expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connected);
-                        expect(connectStub).to.have.been.calledOnce;
-                        expect(writeStub).to.have.been.calledOnce;
+                        expect(connectStub).to.have.callCount(1);
+                        expect(writeStub).to.have.callCount(1);
                         expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
                         connectStub.restore();
                         writeStub.restore();
@@ -125,8 +126,8 @@ export class ClientSpec {
                     const promise = client.connect().catch((err) => {
                         expect(err.message).to.equal('connect error');
                         expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
-                        expect(connectStub).to.have.been.calledOnce;
-                        expect(writeStub).not.to.have.been.calledOnce;
+                        expect(connectStub).to.have.callCount(1);
+                        expect(writeStub).not.to.have.callCount(1);
                         connectStub.restore();
                         writeStub.restore();
                     });
@@ -151,11 +152,11 @@ export class ClientSpec {
                     });
 
                     expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
-                    let promise = client.connect().catch((err) => {
+                    const promise = client.connect().catch((err) => {
                         expect(err.message).to.equal('timeout');
                         expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
-                        expect(connectStub).to.have.been.calledOnce;
-                        expect(writeStub).to.have.been.calledOnce;
+                        expect(connectStub).to.have.callCount(1);
+                        expect(writeStub).to.have.callCount(1);
                         expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
                         connectStub.restore();
                         writeStub.restore();
@@ -168,7 +169,7 @@ export class ClientSpec {
             });
 
             describe('sendPing', () => {
-                let client:Client;
+                let client: Client;
                 let connectStub;
                 let writeStub;
 
@@ -186,9 +187,9 @@ export class ClientSpec {
 
                     writeStub = sinon.stub(client.socket, 'write');
                     writeStub.callsFake((buffer) => {
-                        if(buffer === 'FLLScore:UnitTest|Primary\r\n') {
+                        if (buffer === 'FLLScore:UnitTest|Primary\r\n') {
                             client.socket.emit('data', 'Welcome:5\r\n');
-                        } else if(buffer === 'Ping:\r\n') {
+                        } else if (buffer === 'Ping:\r\n') {
                             client.socket.emit('data', 'Echo:\r\n');
                         }
                     });
@@ -199,8 +200,8 @@ export class ClientSpec {
                     }).then((res) => {
                         expect(res).to.equal('Echo Received');
                         expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connected);
-                        expect(connectStub).to.have.been.calledOnce;
-                        expect(writeStub).to.have.been.calledTwice;
+                        expect(connectStub).to.have.callCount(1);
+                        expect(writeStub).to.have.callCount(2);
                         expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
                         expect(writeStub).to.have.been.calledWith('Ping:\r\n');
                         connectStub.restore();
@@ -225,9 +226,9 @@ export class ClientSpec {
 
                     writeStub = sinon.stub(client.socket, 'write');
                     writeStub.callsFake((buffer) => {
-                        if(buffer === 'FLLScore:UnitTest|Primary\r\n') {
+                        if (buffer === 'FLLScore:UnitTest|Primary\r\n') {
                             client.socket.emit('data', 'Welcome:5\r\n');
-                        } else if(buffer === 'Ping:\r\n') {
+                        } else if (buffer === 'Ping:\r\n') {
                             client.socket.emit('error', new Error('send error'));
                             client.socket.emit('close', false);
                         }
@@ -240,8 +241,8 @@ export class ClientSpec {
                     }).catch((err) => {
                         expect(err.message).to.equal('send error');
                         expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
-                        expect(connectStub).to.have.been.calledOnce;
-                        expect(writeStub).to.have.been.calledTwice;
+                        expect(connectStub).to.have.callCount(1);
+                        expect(writeStub).to.have.callCount(2);
                         expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
                         expect(writeStub).to.have.been.calledWith('Ping:\r\n');
                         connectStub.restore();
@@ -259,10 +260,10 @@ export class ClientSpec {
                     });
 
                     writeStub = sinon.stub(client.socket, 'write');
-                    writeStub.callsFake((buffer:string) => {
-                        if(buffer === 'FLLScore:UnitTest|Primary\r\n') {
+                    writeStub.callsFake((buffer: string) => {
+                        if (buffer === 'FLLScore:UnitTest|Primary\r\n') {
                             client.socket.emit('data', 'Welcome:5\r\n');
-                        } else if(buffer === 'Ping:\r\n') {
+                        } else if (buffer === 'Ping:\r\n') {
                             client.socket.emit('data', 'NotEcho:\r\n');
                         }
                     });
@@ -276,8 +277,8 @@ export class ClientSpec {
                     }).catch((err) => {
                         expect(err.message).to.equal('timeout');
                         expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connected);
-                        expect(connectStub).to.have.been.calledOnce;
-                        expect(writeStub).to.have.been.calledTwice;
+                        expect(connectStub).to.have.callCount(1);
+                        expect(writeStub).to.have.callCount(2);
                         expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
                         expect(writeStub).to.have.been.calledWith('Ping:\r\n');
                         connectStub.restore();
@@ -287,7 +288,7 @@ export class ClientSpec {
             });
 
             describe('sendLastUpdate', () => {
-                let client:Client;
+                let client: Client;
                 let connectStub;
                 let writeStub;
 
@@ -310,9 +311,9 @@ export class ClientSpec {
                 it('should resolve on a successful last update', () => {
                     writeStub = sinon.stub(client.socket, 'write');
                     writeStub.callsFake((buffer) => {
-                        if(buffer === 'FLLScore:UnitTest|Primary\r\n') {
+                        if (buffer === 'FLLScore:UnitTest|Primary\r\n') {
                             client.socket.emit('data', 'Welcome:5\r\n');
-                        } else if(buffer === 'Send Last Update:\r\n') {
+                        } else if (buffer === 'Send Last Update:\r\n') {
                             client.socket.emit('data', 'Last Update:11/10/2017 7:52:40 AM\r\n');
                         }
                     });
@@ -320,12 +321,12 @@ export class ClientSpec {
                     return client.connect().then(() => {
                         return client.sendLastUpdate();
                     }).then((res) => {
-                        let date = new Date('11/10/2017 7:52:40 AM');
-                        expect(res).to.be.true;
+                        const date = new Date('11/10/2017 7:52:40 AM');
+                        assert.isTrue(res);
                         expect(client.lastUpdate).to.equalDate(date);
                         expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connected);
-                        expect(connectStub).to.have.been.calledOnce;
-                        expect(writeStub).to.have.been.calledTwice;
+                        expect(connectStub).to.have.callCount(1);
+                        expect(writeStub).to.have.callCount(2);
                         expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
                         expect(writeStub).to.have.been.calledWith('Send Last Update:\r\n');
                         writeStub.restore();
@@ -341,10 +342,10 @@ export class ClientSpec {
 
                 it('should reject when a send error occurs', () => {
                     writeStub = sinon.stub(client.socket, 'write');
-                    writeStub.callsFake((buffer:string) => {
-                        if(buffer === 'FLLScore:UnitTest|Primary\r\n') {
+                    writeStub.callsFake((buffer: string) => {
+                        if (buffer === 'FLLScore:UnitTest|Primary\r\n') {
                             client.socket.emit('data', 'Welcome:5\r\n');
-                        } else if(buffer === 'Send Last Update:\r\n') {
+                        } else if (buffer === 'Send Last Update:\r\n') {
                             client.socket.emit('error', new Error('send error'));
                             client.socket.emit('close', false);
                         }
@@ -355,8 +356,8 @@ export class ClientSpec {
                     }).catch((err) => {
                         expect(err.message).to.equal('send error');
                         expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
-                        expect(connectStub).to.have.been.calledOnce;
-                        expect(writeStub).to.have.been.calledTwice;
+                        expect(connectStub).to.have.callCount(1);
+                        expect(writeStub).to.have.callCount(2);
                         expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
                         expect(writeStub).to.have.been.calledWith('Send Last Update:\r\n');
                         writeStub.restore();
@@ -365,11 +366,11 @@ export class ClientSpec {
 
                 it('should reject when a wrong last update message is sent', () => {
                     writeStub = sinon.stub(client.socket, 'write');
-                    writeStub.callsFake((buffer:string, cb) => {
-                        if(buffer === 'FLLScore:UnitTest|Primary\r\n') {
+                    writeStub.callsFake((buffer: string, cb) => {
+                        if (buffer === 'FLLScore:UnitTest|Primary\r\n') {
                             client.socket.emit('data', 'Welcome:5\r\n');
                             cb();
-                        } else if(buffer === 'Send Last Update:\r\n') {
+                        } else if (buffer === 'Send Last Update:\r\n') {
                             client.socket.emit('data', 'NotLastUpdate:\r\n');
                         }
                     });
@@ -382,8 +383,8 @@ export class ClientSpec {
                     }).catch((err) => {
                         expect(err.message).to.equal('timeout');
                         expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connected);
-                        expect(connectStub).to.have.been.calledOnce;
-                        expect(writeStub).to.have.been.calledTwice;
+                        expect(connectStub).to.have.callCount(1);
+                        expect(writeStub).to.have.callCount(2);
                         expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
                         expect(writeStub).to.have.been.calledWith('Send Last Update:\r\n');
                         writeStub.restore();
@@ -392,7 +393,7 @@ export class ClientSpec {
             });
 
             describe('sendScore', () => {
-                let client:Client;
+                let client: Client;
                 let connectStub;
                 let writeStub;
 
@@ -413,10 +414,10 @@ export class ClientSpec {
                 it('should resolve on a successful send score', () => {
                     writeStub = sinon.stub(client.socket, 'write');
                     writeStub.callsFake((buffer) => {
-                        if(buffer === 'FLLScore:UnitTest|Primary\r\n') {
+                        if (buffer === 'FLLScore:UnitTest|Primary\r\n') {
                             client.socket.emit('data', 'Welcome:5\r\n');
-                        } else if(buffer === 'Send Score:\r\n') {
-                            let responses = [
+                        } else if (buffer === 'Send Score:\r\n') {
+                            const responses = [
                                 'Score Header:11/10/2017 7:52:40 AM|12|36|6\r\n',
                                 'Score:16449|Dolphin Spiders|310|310|-1|-1\r\n',
                                 'Score:17557|Crimson Flying|145|145|-1|-1\r\n',
@@ -430,7 +431,7 @@ export class ClientSpec {
                                 'Score:61655|Extreme Dragons|-1|-1|-1|-1\r\n',
                                 'Score:74638|Butterfly Racoons|-1|-1|-1|-1\r\n',
                                 'Score:90436|Fire Bandits|-1|-1|-1|-1\r\n',
-                                'Score Done:\r\n'
+                                'Score Done:\r\n',
                             ];
                             client.socket.emit('data', responses.join(''));
                         }
@@ -438,13 +439,13 @@ export class ClientSpec {
 
                     return client.connect().then(() => {
                         return client.sendScore();
-                    }).then((res:FLLScoreClient.IScoreInfo) => {
-                        expect(res.scheduleInfo).not.to.be.undefined;
-                        expect(res.teamInfo).not.to.be.undefined;
+                    }).then((res: FLLScoreClient.IScoreInfo) => {
+                        assert.isDefined(res.scheduleInfo);
+                        assert.isDefined(res.teamInfo);
                         expect(res.teamInfo.length).to.equal(12);
                         expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connected);
-                        expect(connectStub).to.have.been.calledOnce;
-                        expect(writeStub).to.have.been.calledTwice;
+                        expect(connectStub).to.have.callCount(1);
+                        expect(writeStub).to.have.callCount(2);
                         expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
                         expect(writeStub).to.have.been.calledWith('Send Score:\r\n');
                         writeStub.restore();
@@ -454,19 +455,19 @@ export class ClientSpec {
                 it('should resolve when data is sent in parts', () => {
                     writeStub = sinon.stub(client.socket, 'write');
                     writeStub.callsFake((buffer) => {
-                        if(buffer === 'FLLScore:UnitTest|Primary\r\n') {
+                        if (buffer === 'FLLScore:UnitTest|Primary\r\n') {
                             client.socket.emit('data', 'Welcome:5\r\n');
-                        } else if(buffer === 'Send Score:\r\n') {
-                            let responses1 = [
+                        } else if (buffer === 'Send Score:\r\n') {
+                            const responses1 = [
                                 'Score Header:11/10/2017 7:52:40 AM|12|36|6\r\n',
                                 'Score:16449|Dolphin Spiders|310|310|-1|-1\r\n',
                                 'Score:17557|Crimson Flying|145|145|-1|-1\r\n',
                                 'Score:23402|Striking Heroes|270|270|-1|-1\r\n',
                                 'Score:30150|Lightning Spanners|275|275|-1|245\r\n',
                                 'Score:33256|Alpha Secret Agents|-1|-1|-1|-1\r\n',
-                                'Score:36131|Ice Mutants|'
+                                'Score:36131|Ice Mutants|',
                             ];
-                            let responses2 = [
+                            const responses2 = [
                                 '205|205|-1|-1\r\n',
                                 'Score:41714|Muffin Bandits|-1|-1|-1|-1\r\n',
                                 'Score:45406|Venomous Slammers|-1|-1|-1|-1\r\n',
@@ -474,7 +475,7 @@ export class ClientSpec {
                                 'Score:61655|Extreme Dragons|-1|-1|-1|-1\r\n',
                                 'Score:74638|Butterfly Racoons|-1|-1|-1|-1\r\n',
                                 'Score:90436|Fire Bandits|-1|-1|-1|-1\r\n',
-                                'Score Done:\r\n'
+                                'Score Done:\r\n',
                             ];
                             client.socket.emit('data', responses1.join(''));
                             client.socket.emit('data', responses2.join(''));
@@ -483,13 +484,13 @@ export class ClientSpec {
 
                     return client.connect().then(() => {
                         return client.sendScore();
-                    }).then((res:FLLScoreClient.IScoreInfo) => {
-                        expect(res.scheduleInfo).not.to.be.undefined;
-                        expect(res.teamInfo).not.to.be.undefined;
+                    }).then((res: FLLScoreClient.IScoreInfo) => {
+                        assert.isDefined(res.scheduleInfo);
+                        assert.isDefined(res.teamInfo);
                         expect(res.teamInfo.length).to.equal(12);
                         expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Connected);
-                        expect(connectStub).to.have.been.calledOnce;
-                        expect(writeStub).to.have.been.calledTwice;
+                        expect(connectStub).to.have.callCount(1);
+                        expect(writeStub).to.have.callCount(2);
                         expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
                         expect(writeStub).to.have.been.calledWith('Send Score:\r\n');
                         writeStub.restore();
@@ -506,9 +507,9 @@ export class ClientSpec {
                 it('should reject when a send error occurs', () => {
                     writeStub = sinon.stub(client.socket, 'write');
                     writeStub.callsFake((buffer) => {
-                        if(buffer === 'FLLScore:UnitTest|Primary\r\n') {
+                        if (buffer === 'FLLScore:UnitTest|Primary\r\n') {
                             client.socket.emit('data', 'Welcome:5\r\n');
-                        } else if(buffer === 'Send Score:\r\n') {
+                        } else if (buffer === 'Send Score:\r\n') {
                             client.socket.emit('error', new Error('send error'));
                             client.socket.emit('close', false);
                         }
@@ -519,8 +520,8 @@ export class ClientSpec {
                     }).catch((err) => {
                         expect(err.message).to.equal('send error');
                         expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
-                        expect(connectStub).to.have.been.calledOnce;
-                        expect(writeStub).to.have.been.calledTwice;
+                        expect(connectStub).to.have.callCount(1);
+                        expect(writeStub).to.have.callCount(2);
                         expect(writeStub).to.have.been.calledWith('FLLScore:UnitTest|Primary\r\n');
                         expect(writeStub).to.have.been.calledWith('Send Score:\r\n');
                         writeStub.restore();
@@ -529,7 +530,7 @@ export class ClientSpec {
             });
 
             describe('close', () => {
-                let client:Client;
+                let client: Client;
                 let connectStub;
                 let endStub;
                 let writeStub;
@@ -545,7 +546,7 @@ export class ClientSpec {
 
                     writeStub = sinon.stub(client.socket, 'write');
                     writeStub.callsFake((buffer) => {
-                        if(buffer === 'FLLScore:UnitTest|Primary\r\n') {
+                        if (buffer === 'FLLScore:UnitTest|Primary\r\n') {
                             client.socket.emit('data', 'Welcome:5\r\n');
                         }
                     });
@@ -569,9 +570,9 @@ export class ClientSpec {
                     }).then((res) => {
                         expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
                         expect(res).to.equal('Connection Closed');
-                        expect(connectStub).to.have.been.calledOnce;
-                        expect(writeStub).to.have.been.calledOnce;
-                        expect(endStub).to.have.been.calledOnce;
+                        expect(connectStub).to.have.callCount(1);
+                        expect(writeStub).to.have.callCount(1);
+                        expect(endStub).to.have.callCount(1);
                         endStub.restore();
                     });
                 });
@@ -596,9 +597,9 @@ export class ClientSpec {
                     }).catch((res) => {
                         expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
                         expect(res.message).to.equal('Closed with error');
-                        expect(connectStub).to.have.been.calledOnce;
-                        expect(writeStub).to.have.been.calledOnce;
-                        expect(endStub).to.have.been.calledOnce;
+                        expect(connectStub).to.have.callCount(1);
+                        expect(writeStub).to.have.callCount(1);
+                        expect(endStub).to.have.callCount(1);
                         endStub.restore();
                     });
                 });
@@ -617,16 +618,16 @@ export class ClientSpec {
                     }).catch((res) => {
                         expect(client.status).to.equal(FLLScoreClientConstants.ConnectionStatus.Disconnected);
                         expect(res.message).to.equal('close error');
-                        expect(connectStub).to.have.been.calledOnce;
-                        expect(writeStub).to.have.been.calledOnce;
-                        expect(endStub).to.have.been.calledOnce;
+                        expect(connectStub).to.have.callCount(1);
+                        expect(writeStub).to.have.callCount(1);
+                        expect(endStub).to.have.callCount(1);
                         endStub.restore();
                     });
                 });
             });
 
             describe('watchdog timer', () => {
-                let client:Client;
+                let client: Client;
                 let connectStub;
                 let endStub;
                 let writeStub;
@@ -652,9 +653,9 @@ export class ClientSpec {
                         client.socket.emit('data', 'Welcome:5\r\n');
                     });
                     writeStub.callsFake((buffer, cb) => {
-                        if(buffer === 'Ping:\r\n') {
+                        if (buffer === 'Ping:\r\n') {
                             client.socket.emit('data', 'Echo:\r\n');
-                            if(cb !== undefined) {
+                            if (cb !== undefined) {
                                 cb();
                             }
                         }
@@ -677,38 +678,38 @@ export class ClientSpec {
 
                 it('should cancel timer when closing connection', () => {
                     return client.connect().then(() => {
-                        expect(setIntervalSpy).to.have.been.calledOnce;
+                        expect(setIntervalSpy).to.have.callCount(1);
                         return client.close();
                     }).then(() => {
-                        expect(clearIntervalSpy).to.have.been.calledOnce;
+                        expect(clearIntervalSpy).to.have.callCount(1);
                     });
                 });
 
                 it('should call ping when no calls have been made', () => {
                     return client.connect().then(() => {
-                        expect(setIntervalSpy).to.have.been.calledOnce;
+                        expect(setIntervalSpy).to.have.callCount(1);
                         clock.tick(5100);
-                        expect(writeStub).to.have.been.calledTwice;
+                        expect(writeStub).to.have.callCount(2);
                         clock.tick(5100);
-                        expect(writeStub).to.have.been.calledThrice;
+                        expect(writeStub).to.have.callCount(3);
                         return client.close();
                     });
                 });
 
                 it('should reset timer when a call has been made', () => {
                     return client.connect().then(() => {
-                        expect(setIntervalSpy).to.have.been.calledOnce;
+                        expect(setIntervalSpy).to.have.callCount(1);
                         clock.tick(5100);
-                        expect(writeStub).to.have.been.calledTwice;
+                        expect(writeStub).to.have.callCount(2);
                         clock.tick(3000);
-                        expect(clearIntervalSpy).not.to.have.been.called;
-                        expect(setIntervalSpy).to.have.been.calledOnce;
+                        expect(clearIntervalSpy).to.have.callCount(0);
+                        expect(setIntervalSpy).to.have.callCount(1);
                         return client.sendPing();
                     }).then(() => {
                         clock.tick(2000);
-                        expect(clearIntervalSpy).to.have.been.calledOnce;
-                        expect(setIntervalSpy).to.have.been.calledTwice;
-                        expect(writeStub).to.have.been.calledThrice;
+                        expect(clearIntervalSpy).to.have.callCount(1);
+                        expect(setIntervalSpy).to.have.callCount(2);
+                        expect(writeStub).to.have.callCount(3);
                         return client.close();
                     });
                 });

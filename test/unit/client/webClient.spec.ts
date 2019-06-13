@@ -1,19 +1,20 @@
-import * as chai from "chai";
-import * as sinon from "sinon";
-import * as sinonChai from "sinon-chai";
+import * as chai from 'chai';
+import * as sinon from 'sinon';
+import * as sinonChai from 'sinon-chai';
+import * as socketIO from 'socket.io';
+
+import {assert, expect} from 'chai';
 
 import {WebClient} from '../../../src/client/webClient';
-import {expect} from "chai";
-import {FLLScoreClient} from '../../../src/shared/interface';
-import * as socketIO from 'socket.io';
+import * as FLLScoreClient from '../../../src/shared/interface';
 
 chai.use(sinonChai);
 
 export class WebClientSpec {
     public static run() {
         describe('WebClient', () => {
-            let server:SocketIO.Server;
-            let webClient:WebClient;
+            let server: SocketIO.Server;
+            let webClient: WebClient;
 
             beforeEach(() => {
                 server = socketIO();
@@ -32,45 +33,45 @@ export class WebClientSpec {
                 it('should construct with default parameters', () => {
                     webClient = new WebClient();
 
-                    expect(webClient instanceof WebClient).to.be.true;
+                    assert.isTrue(webClient instanceof WebClient);
                     expect((webClient as WebClient).host).to.equal('localhost');
                     expect((webClient as WebClient).port).to.equal(25003);
-                    expect(webClient.socket).to.not.be.undefined;
-                    expect(webClient.getLastUpdate).to.not.be.undefined;
-                    expect(webClient.getScoreInfo).to.not.be.undefined;
+                    assert.isDefined(webClient.socket);
+                    assert.isDefined(webClient.getLastUpdate);
+                    assert.isDefined(webClient.getScoreInfo);
                 });
 
                 it('should construct new host', () => {
                     webClient = new WebClient('new-host');
 
-                    expect(webClient instanceof WebClient).to.be.true;
+                    assert.isTrue(webClient instanceof WebClient);
                     expect((webClient as WebClient).host).to.equal('new-host');
                     expect((webClient as WebClient).port).to.equal(25003);
-                    expect(webClient.socket).to.not.be.undefined;
-                    expect(webClient.getLastUpdate).to.not.be.undefined;
-                    expect(webClient.getScoreInfo).to.not.be.undefined;
+                    assert.isDefined(webClient.socket);
+                    assert.isDefined(webClient.getLastUpdate);
+                    assert.isDefined(webClient.getScoreInfo);
                 });
 
                 it('should construct new port', () => {
                     webClient = new WebClient('new-host', 42);
 
-                    expect(webClient instanceof WebClient).to.be.true;
+                    assert.isTrue(webClient instanceof WebClient);
                     expect((webClient as WebClient).host).to.equal('new-host');
                     expect((webClient as WebClient).port).to.equal(42);
-                    expect(webClient.socket).to.not.be.undefined;
-                    expect(webClient.getLastUpdate).to.not.be.undefined;
-                    expect(webClient.getScoreInfo).to.not.be.undefined;
+                    assert.isDefined(webClient.socket);
+                    assert.isDefined(webClient.getLastUpdate);
+                    assert.isDefined(webClient.getScoreInfo);
                 });
 
                 it('should construct new host:port combo', () => {
                     webClient = new WebClient('new-host:42', 1337);
 
-                    expect(webClient instanceof WebClient).to.be.true;
+                    assert.isTrue(webClient instanceof WebClient);
                     expect((webClient as WebClient).host).to.equal('new-host:42');
                     expect((webClient as WebClient).port).to.equal(42);
-                    expect(webClient.socket).to.not.be.undefined;
-                    expect(webClient.getLastUpdate).to.not.be.undefined;
-                    expect(webClient.getScoreInfo).to.not.be.undefined;
+                    assert.isDefined(webClient.socket);
+                    assert.isDefined(webClient.getLastUpdate);
+                    assert.isDefined(webClient.getScoreInfo);
                 });
 
                 it('should notify consumers of connection on Connect', () => {
@@ -148,18 +149,18 @@ export class WebClientSpec {
                             numberOfTeams: 12,
                         },
                         teamInfo: [
-                            {number:16449, name: 'Dolphin Spiders', highScore: 310, scores: [310,-1,-1]},
-                            {number:17557, name: 'Crimson Flying', highScore: 145, scores: [145,-1,-1]},
-                            {number:23402, name: 'Striking Heroes', highScore: 270, scores: [270,-1,-1]},
-                            {number:30150, name: 'Lightning Spanners', highScore: 275, scores: [275,-1,245]},
-                            {number:33256, name: 'Alpha Secret Agents', highScore: -1, scores: [-1,-1,-1]},
-                            {number:36131, name: 'Ice Mutants', highScore: 205, scores: [205,-1,-1]},
-                            {number:41714, name: 'Muffin Bandits', highScore: -1, scores: [-1,-1,-1]},
-                            {number:45406, name: 'Venomous Slammers', highScore: -1, scores: [-1,-1,-1]},
-                            {number:48551, name: 'Sneaky Falcons', highScore: -1, scores: [-1,-1,-1]},
-                            {number:61655, name: 'Extreme Dragons', highScore: -1, scores: [-1,-1,-1]},
-                            {number:74638, name: 'Butterfly Racoons', highScore: -1, scores: [-1,-1,-1]},
-                            {number:90436, name: 'Fire Bandits, highScore: ', highScore: -1, scores: [-1,-1,-1]},
+                            {number: 16449, name: 'Dolphin Spiders', highScore: 310, scores: [310, -1, -1]},
+                            {number: 17557, name: 'Crimson Flying', highScore: 145, scores: [145, -1, -1]},
+                            {number: 23402, name: 'Striking Heroes', highScore: 270, scores: [270, -1, -1]},
+                            {number: 30150, name: 'Lightning Spanners', highScore: 275, scores: [275, -1, 245]},
+                            {number: 33256, name: 'Alpha Secret Agents', highScore: -1, scores: [-1, -1, -1]},
+                            {number: 36131, name: 'Ice Mutants', highScore: 205, scores: [205, -1, -1]},
+                            {number: 41714, name: 'Muffin Bandits', highScore: -1, scores: [-1, -1, -1]},
+                            {number: 45406, name: 'Venomous Slammers', highScore: -1, scores: [-1, -1, -1]},
+                            {number: 48551, name: 'Sneaky Falcons', highScore: -1, scores: [-1, -1, -1]},
+                            {number: 61655, name: 'Extreme Dragons', highScore: -1, scores: [-1, -1, -1]},
+                            {number: 74638, name: 'Butterfly Racoons', highScore: -1, scores: [-1, -1, -1]},
+                            {number: 90436, name: 'Fire Bandits, highScore: ', highScore: -1, scores: [-1, -1, -1]},
                         ],
                     };
                     const emitSpy = sinon.spy(webClient, 'emit');
@@ -200,7 +201,7 @@ export class WebClientSpec {
                     webClient = new WebClient();
                     emitStub = sinon.stub(webClient.socket, 'emit');
                     emitStub.callsFake((ev, m, cb) => {
-                        if(ev === 'sendLastUpdate') {
+                        if (ev === 'sendLastUpdate') {
                             expect(m.toString()).to.equal('please');
                             cb('11/10/2017 7:52:40 AM');
                         }
@@ -214,25 +215,25 @@ export class WebClientSpec {
                 it('should request lastUpdate when it is undefined', () => {
                     return webClient.getLastUpdate().then((res) => {
                         expect(res).to.equalDate(dateCmp);
-                        expect(emitStub).to.have.been.calledOnce;
+                        expect(emitStub).to.have.callCount(1);
                     });
                 });
 
                 it('should resolve to lastUpdate when it is not undefined', () => {
                     return webClient.getLastUpdate().then((res) => {
                         expect(res).to.equalDate(dateCmp);
-                        expect(emitStub).to.have.been.calledOnce;
+                        expect(emitStub).to.have.callCount(1);
                         return webClient.getLastUpdate();
                     }).then((res) => {
                         expect(res).to.equalDate(dateCmp);
-                        expect(emitStub).to.have.been.calledOnce;
+                        expect(emitStub).to.have.callCount(1);
                     });
                 });
 
                 it('should reject when an error is sent', () => {
                     emitStub.resetBehavior();
                     emitStub.callsFake((ev, m, cb) => {
-                        if(ev === 'sendLastUpdate') {
+                        if (ev === 'sendLastUpdate') {
                             expect(m.toString()).to.equal('please');
                             cb(new Error('lastUpdateError'));
                         }
@@ -251,7 +252,7 @@ export class WebClientSpec {
                     webClient = new WebClient();
                     emitStub = sinon.stub(webClient.socket, 'emit');
                     emitStub.callsFake((ev, m, cb) => {
-                        if(ev === 'sendScoreInfo') {
+                        if (ev === 'sendScoreInfo') {
                             expect(m.toString()).to.equal('please');
                             const info: FLLScoreClient.IScoreInfo = {
                                 scheduleInfo: {
@@ -261,18 +262,18 @@ export class WebClientSpec {
                                     numberOfTeams: 12,
                                 },
                                 teamInfo: [
-                                    {number:16449, name: 'Dolphin Spiders', highScore: 310, scores: [310,-1,-1]},
-                                    {number:17557, name: 'Crimson Flying', highScore: 145, scores: [145,-1,-1]},
-                                    {number:23402, name: 'Striking Heroes', highScore: 270, scores: [270,-1,-1]},
-                                    {number:30150, name: 'Lightning Spanners', highScore: 275, scores: [275,-1,245]},
-                                    {number:33256, name: 'Alpha Secret Agents', highScore: -1, scores: [-1,-1,-1]},
-                                    {number:36131, name: 'Ice Mutants', highScore: 205, scores: [205,-1,-1]},
-                                    {number:41714, name: 'Muffin Bandits', highScore: -1, scores: [-1,-1,-1]},
-                                    {number:45406, name: 'Venomous Slammers', highScore: -1, scores: [-1,-1,-1]},
-                                    {number:48551, name: 'Sneaky Falcons', highScore: -1, scores: [-1,-1,-1]},
-                                    {number:61655, name: 'Extreme Dragons', highScore: -1, scores: [-1,-1,-1]},
-                                    {number:74638, name: 'Butterfly Racoons', highScore: -1, scores: [-1,-1,-1]},
-                                    {number:90436, name: 'Fire Bandits, highScore: ', highScore: -1, scores: [-1,-1,-1]},
+                                    {number: 16449, name: 'Dolphin Spiders', highScore: 310, scores: [310, -1, -1]},
+                                    {number: 17557, name: 'Crimson Flying', highScore: 145, scores: [145, -1, -1]},
+                                    {number: 23402, name: 'Striking Heroes', highScore: 270, scores: [270, -1, -1]},
+                                    {number: 30150, name: 'Lightning Spanners', highScore: 275, scores: [275, -1, 245]},
+                                    {number: 33256, name: 'Alpha Secret Agents', highScore: -1, scores: [-1, -1, -1]},
+                                    {number: 36131, name: 'Ice Mutants', highScore: 205, scores: [205, -1, -1]},
+                                    {number: 41714, name: 'Muffin Bandits', highScore: -1, scores: [-1, -1, -1]},
+                                    {number: 45406, name: 'Venomous Slammers', highScore: -1, scores: [-1, -1, -1]},
+                                    {number: 48551, name: 'Sneaky Falcons', highScore: -1, scores: [-1, -1, -1]},
+                                    {number: 61655, name: 'Extreme Dragons', highScore: -1, scores: [-1, -1, -1]},
+                                    {number: 74638, name: 'Butterfly Racoons', highScore: -1, scores: [-1, -1, -1]},
+                                    {number: 90436, name: 'Fire Bandits', highScore: -1, scores: [-1, -1, -1]},
                                 ],
                             };
                             cb(info);
@@ -281,33 +282,33 @@ export class WebClientSpec {
                 });
 
                 it('should request scoreInfo when it is undefined', () => {
-                    return webClient.getScoreInfo().then((res:FLLScoreClient.IScoreInfo) => {
-                        expect(res.scheduleInfo).to.not.be.undefined;
-                        expect(res.teamInfo).to.not.be.undefined;
+                    return webClient.getScoreInfo().then((res: FLLScoreClient.IScoreInfo) => {
+                        assert.isDefined(res.scheduleInfo);
+                        assert.isDefined(res.teamInfo);
                         expect(res.scheduleInfo.numberOfTeams).to.equal(12);
                         expect(res.teamInfo.length).to.equal(12);
                         expect(res.teamInfo[0].number).to.equal(16449);
-                        expect(emitStub).to.have.been.calledOnce;
+                        expect(emitStub).to.have.callCount(1);
                         emitStub.restore();
                     });
                 });
 
                 it('should resolve to scoreInfo when it is not undefined', () => {
-                    return webClient.getScoreInfo().then((res:FLLScoreClient.IScoreInfo) => {
-                        expect(res.scheduleInfo).to.not.be.undefined;
-                        expect(res.teamInfo).to.not.be.undefined;
+                    return webClient.getScoreInfo().then((res: FLLScoreClient.IScoreInfo) => {
+                        assert.isDefined(res.scheduleInfo);
+                        assert.isDefined(res.teamInfo);
                         expect(res.scheduleInfo.numberOfTeams).to.equal(12);
                         expect(res.teamInfo.length).to.equal(12);
                         expect(res.teamInfo[0].number).to.equal(16449);
-                        expect(emitStub).to.have.been.calledOnce;
+                        expect(emitStub).to.have.callCount(1);
                         return webClient.getScoreInfo();
                     }).then((res) => {
-                        expect(res.scheduleInfo).to.not.be.undefined;
-                        expect(res.teamInfo).to.not.be.undefined;
+                        assert.isDefined(res.scheduleInfo);
+                        assert.isDefined(res.teamInfo);
                         expect(res.scheduleInfo.numberOfTeams).to.equal(12);
                         expect(res.teamInfo.length).to.equal(12);
                         expect(res.teamInfo[0].number).to.equal(16449);
-                        expect(emitStub).to.have.been.calledOnce;
+                        expect(emitStub).to.have.callCount(1);
                         emitStub.restore();
                     });
                 });
@@ -315,7 +316,7 @@ export class WebClientSpec {
                 it('should reject when an error is sent', () => {
                     emitStub.resetBehavior();
                     emitStub.callsFake((ev, m, cb) => {
-                        if(ev === 'sendScoreInfo') {
+                        if (ev === 'sendScoreInfo') {
                             expect(m.toString()).to.equal('please');
                             cb(new Error('scoreInfoError'));
                         }

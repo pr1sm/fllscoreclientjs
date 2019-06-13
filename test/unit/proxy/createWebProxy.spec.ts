@@ -1,14 +1,14 @@
-import {expect} from "chai";
-import {createWebProxy, FLLScoreClient} from '../../../src/proxy/index';
-import {MockClient} from '../mock/client';
+import {assert, expect} from 'chai';
+import {createWebProxy} from '../../../src/proxy/index';
 import {WebProxy} from '../../../src/proxy/webProxy';
+import {MockClient} from '../mock/client';
 
 export class CreateWebProxySpec {
     public static run() {
         describe('createWebProxy', () => {
             it('should return a valid client with no parameters', () => {
                 const proxy = createWebProxy();
-                expect(proxy instanceof WebProxy).to.be.true;
+                assert.isTrue(proxy instanceof WebProxy);
                 expect(proxy.socketOpts.host).to.equal('localhost');
                 expect(proxy.socketOpts.name).to.equal('FLLScoreClient');
                 expect(proxy.socketOpts.port).to.equal(25002);
@@ -23,10 +23,10 @@ export class CreateWebProxySpec {
                         host: 'new-host',
                         name: 'new-name',
                         port: 42,
-                        useWatchdog: false
+                        useWatchdog: false,
                     },
                 });
-                expect(proxy instanceof WebProxy).to.be.true;
+                assert.isTrue(proxy instanceof WebProxy);
                 expect(proxy.socketOpts.host).to.equal('new-host');
                 expect(proxy.socketOpts.name).to.equal('new-name');
                 expect(proxy.socketOpts.port).to.equal(42);
@@ -35,13 +35,13 @@ export class CreateWebProxySpec {
 
             it('should return a valid client with infoPollingRate', () => {
                 const proxy = createWebProxy({infoPollingRate: 40});
-                expect(proxy instanceof WebProxy).to.be.true;
+                assert.isTrue(proxy instanceof WebProxy);
                 expect(proxy.infoPollingRate).to.equal(40);
             });
 
             it('should return a valid client with servePort', () => {
                 const proxy = createWebProxy({servePort: 42});
-                expect(proxy instanceof WebProxy).to.be.true;
+                assert.isTrue(proxy instanceof WebProxy);
                 expect(proxy.servePort).to.equal(42);
             });
 
@@ -53,10 +53,10 @@ export class CreateWebProxySpec {
                         host: 'new-host',
                         name: 'new-name',
                         port: 42,
-                        useWatchdog: false
+                        useWatchdog: false,
                     },
                 });
-                expect(proxy instanceof WebProxy).to.be.true;
+                assert.isTrue(proxy instanceof WebProxy);
                 expect(proxy.socketOpts.host).to.equal('localhost');
                 expect(proxy.socketOpts.name).to.equal('FLLScoreClient');
                 expect(proxy.socketOpts.port).to.equal(25002);
@@ -68,7 +68,7 @@ export class CreateWebProxySpec {
                     servePort: 42,
                     socketOpts: { port: 42 },
                 });
-                expect(proxy instanceof WebProxy).to.be.true;
+                assert.isTrue(proxy instanceof WebProxy);
                 expect(proxy.socketOpts.port).to.equal(42);
                 expect(proxy.servePort).to.equal(43);
             });

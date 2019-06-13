@@ -1,8 +1,17 @@
-import {FLLScoreClient} from '../../../src/shared/interface';
-import {Socket} from "net";
-import * as sinon from "sinon";
+import {Socket} from 'net';
+import * as sinon from 'sinon';
+import * as FLLScoreClient from '../../../src/shared/interface';
 
 export class MockClient implements FLLScoreClient.IClient {
+    public static createMockSocket() {
+        const mock = new Socket();
+        sinon.stub(mock, 'on');
+        sinon.stub(mock, 'emit');
+        sinon.stub(mock, 'removeListener');
+        sinon.stub(mock, 'connect');
+        return mock;
+    }
+
     public readonly lastUpdate: Date;
     public readonly opts: FLLScoreClient.IClientOpts = {
         host: 'localhost',
@@ -13,9 +22,9 @@ export class MockClient implements FLLScoreClient.IClient {
     public readonly scoreInfo: FLLScoreClient.IScoreInfo = {
         scheduleInfo: {
             lastUpdate: new Date('11/10/2017 7:52:40 AM'),
-            numberOfTeams: 4,
-            numberOfMatches: 12,
             numberOfCompletedMatches: 1,
+            numberOfMatches: 12,
+            numberOfTeams: 4,
         },
         teamInfo: [
             {number: 16449, highScore: 310, name: 'Dolphin Spiders', scores: [310, -1, -1]},
@@ -49,16 +58,6 @@ export class MockClient implements FLLScoreClient.IClient {
         this.socket = mockOpts.socket || MockClient.createMockSocket();
     }
 
-    public static createMockSocket() {
-        let mock = new Socket();
-        sinon.stub(mock, 'on');
-        sinon.stub(mock, 'emit');
-        sinon.stub(mock, 'removeListener');
-        sinon.stub(mock, 'connect');
-
-        return mock;
-    }
-
     public connect(): Promise<string> {
         if (this.rejectConnect) {
             return Promise.reject('error');
@@ -76,7 +75,7 @@ export class MockClient implements FLLScoreClient.IClient {
     }
 
     public sendLastUpdate(): Promise<boolean> {
-        if(this.rejectLastUpdate) {
+        if (this.rejectLastUpdate) {
             return Promise.reject('error');
         } else {
             return Promise.resolve(!this.resolveLastUpdateFalse);
@@ -84,7 +83,7 @@ export class MockClient implements FLLScoreClient.IClient {
     }
 
     public sendScore(): Promise<FLLScoreClient.IScoreInfo> {
-        if(this.rejectSendScore) {
+        if (this.rejectSendScore) {
             return Promise.reject('error');
         } else {
             return Promise.resolve(this.scoreInfo);

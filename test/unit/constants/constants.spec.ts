@@ -1,11 +1,11 @@
-import { expect } from "chai";
-import * as FLLScoreClientConstants from "../../../src/constants/index";
+import { expect } from 'chai';
+import * as FLLScoreClientConstants from '../../../src/constants/index';
 
 export class ConstantsSpec {
     public static run() {
         describe('FLLScoreClientConstants', () => {
             describe('Welcome Regex', () => {
-                let regex = FLLScoreClientConstants.WELCOME;
+                const regex = FLLScoreClientConstants.WELCOME;
 
                 it('should succeed on a welcome command', () => {
                     expect(regex.test('Welcome:5\r\n')).to.equal(true);
@@ -33,7 +33,7 @@ export class ConstantsSpec {
             });
 
             describe('Echo Regex', () => {
-                let regex = FLLScoreClientConstants.ECHO;
+                const regex = FLLScoreClientConstants.ECHO;
 
                 it('should succeed on an echo command', () => {
                     expect(regex.test('Echo:\r\n')).to.equal(true);
@@ -57,7 +57,7 @@ export class ConstantsSpec {
             });
 
             describe('Score Header Regex', () => {
-                let regex = FLLScoreClientConstants.SCORE_HEADER;
+                const regex = FLLScoreClientConstants.SCORE_HEADER;
 
                 it('should succeed on a score header command', () => {
                     expect(regex.test('Score Header:11/10/2017 7:52:40 AM|12|36|6\r\n')).to.equal(true);
@@ -97,7 +97,7 @@ export class ConstantsSpec {
             });
 
             describe('Score Regex', () => {
-                let regex = FLLScoreClientConstants.SCORE;
+                const regex = FLLScoreClientConstants.SCORE;
 
                 it('should succeed on a score command', () => {
                     expect(regex.test('Score:40503|Team Unit Testing|42|42|-1|-1\r\n')).to.equal(true);
@@ -157,7 +157,7 @@ export class ConstantsSpec {
             });
 
             describe('Score Done Regex', () => {
-                let regex = FLLScoreClientConstants.SCORE_DONE;
+                const regex = FLLScoreClientConstants.SCORE_DONE;
 
                 it('should succeed on a Score Done command', () => {
                     expect(regex.test('Score Done:\r\n')).to.equal(true);
@@ -181,7 +181,7 @@ export class ConstantsSpec {
             });
 
             describe('Last Update Regex', () => {
-                let regex = FLLScoreClientConstants.LAST_UPDATE;
+                const regex = FLLScoreClientConstants.LAST_UPDATE;
 
                 it('should succeed on a Last Update command', () => {
                     expect(regex.test('Last Update:11/10/2017 7:52:40 AM\r\n')).to.equal(true);

@@ -1,4 +1,4 @@
-import {FLLScoreClient} from '../shared/interface';
+import * as FLLScoreClient from '../shared/interface';
 import {Client} from './client';
 import {WebProxy} from './webProxy';
 

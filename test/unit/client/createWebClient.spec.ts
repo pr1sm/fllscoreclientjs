@@ -1,7 +1,7 @@
-import { expect } from "chai";
+import { assert, expect } from 'chai';
 import { createWebClient } from '../../../src/client/index';
 import { WebClient } from '../../../src/client/webClient';
-import {FLLScoreClient} from '../../../src/shared/interface';
+import * as FLLScoreClient from '../../../src/shared/interface';
 
 export class CreateWebClientSpec {
     public static run() {
@@ -9,7 +9,7 @@ export class CreateWebClientSpec {
             let webClient: FLLScoreClient.IWebClient;
 
             afterEach(() => {
-                if(webClient !== undefined) {
+                if (webClient !== undefined) {
                     (webClient as WebClient).close();
                 }
             });
@@ -17,45 +17,45 @@ export class CreateWebClientSpec {
             it('should construct a valid WebClient', () => {
                 webClient = createWebClient();
 
-                expect(webClient instanceof WebClient).to.be.true;
+                assert.isTrue(webClient instanceof WebClient);
                 expect((webClient as WebClient).host).to.equal('localhost');
                 expect((webClient as WebClient).port).to.equal(25003);
-                expect(webClient.socket).to.not.be.undefined;
-                expect(webClient.getLastUpdate).to.not.be.undefined;
-                expect(webClient.getScoreInfo).to.not.be.undefined;
+                assert.isDefined(webClient.socket);
+                assert.isDefined(webClient.getLastUpdate);
+                assert.isDefined(webClient.getScoreInfo);
             });
 
             it('should construct a valid WebClient with new host', () => {
                 webClient = createWebClient('new-host');
 
-                expect(webClient instanceof WebClient).to.be.true;
+                assert.isTrue(webClient instanceof WebClient);
                 expect((webClient as WebClient).host).to.equal('new-host');
                 expect((webClient as WebClient).port).to.equal(25003);
-                expect(webClient.socket).to.not.be.undefined;
-                expect(webClient.getLastUpdate).to.not.be.undefined;
-                expect(webClient.getScoreInfo).to.not.be.undefined;
+                assert.isDefined(webClient.socket);
+                assert.isDefined(webClient.getLastUpdate);
+                assert.isDefined(webClient.getScoreInfo);
             });
 
             it('should construct a valid WebClient with new port', () => {
                 webClient = createWebClient('new-host', 42);
 
-                expect(webClient instanceof WebClient).to.be.true;
+                assert.isTrue(webClient instanceof WebClient);
                 expect((webClient as WebClient).host).to.equal('new-host');
                 expect((webClient as WebClient).port).to.equal(42);
-                expect(webClient.socket).to.not.be.undefined;
-                expect(webClient.getLastUpdate).to.not.be.undefined;
-                expect(webClient.getScoreInfo).to.not.be.undefined;
+                assert.isDefined(webClient.socket);
+                assert.isDefined(webClient.getLastUpdate);
+                assert.isDefined(webClient.getScoreInfo);
             });
 
             it('should construct a valid WebClient with new host with port', () => {
                 webClient = createWebClient('new-host:42', 1337);
 
-                expect(webClient instanceof WebClient).to.be.true;
+                assert.isTrue(webClient instanceof WebClient);
                 expect((webClient as WebClient).host).to.equal('new-host:42');
                 expect((webClient as WebClient).port).to.equal(42);
-                expect(webClient.socket).to.not.be.undefined;
-                expect(webClient.getLastUpdate).to.not.be.undefined;
-                expect(webClient.getScoreInfo).to.not.be.undefined;
+                assert.isDefined(webClient.socket);
+                assert.isDefined(webClient.getLastUpdate);
+                assert.isDefined(webClient.getScoreInfo);
             });
         });
     }
