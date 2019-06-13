@@ -13,14 +13,14 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@github.com/Pr1sM/fllscoreclientjs.git"
+    "url": "git+ssh://git@github.com:pr1sm/fllscoreclientjs.git"
   },
   "author": "Srinivas Dhanwada",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/Pr1sM/fllscoreclientjs/issues"
+    "url": "https://github.com/pr1sm/fllscoreclientjs/issues"
   },
-  "homepage": "https://github.com/Pr1sM/fllscoreclientjs#readme",
+  "homepage": "https://github.com/pr1sm/fllscoreclientjs#readme",
   "devDependencies": {
     "@types/chai": "^4.0.10",
     "@types/chai-datetime": "0.0.31",
